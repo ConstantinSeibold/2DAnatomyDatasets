@@ -1,10 +1,12 @@
 import colorcet as cc
 import cv2
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont, ImageColor
+from pycocotools.coco import COCO
+from pycocotools import mask as maskUtils
+import cv2
 import numpy as np, torchvision
 import torch, os, json
 from skimage.color import label2rgb
-from PIL import ImageColor
 
 def get_colors(n_labels):
     return [cc.cm.glasbey_bw_minc_20(i) for i in range(n_labels)]
@@ -169,3 +171,66 @@ def visualize_from_file(class_names: list,
             out_dir,
             '{}_{}.png'.format(os.path.basename(label_path).split('.')[0], '_'.join(class_names))))
     return visualization
+
+def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=True, show_bbox=True):
+    """
+    Visualizes COCO mask annotations for a given image using PIL.
+
+    Parameters:
+        image (PIL.Image): The image to display the annotations on.
+        annotations (list): List of annotations for the image (from COCO).
+        coco (COCO): COCO object instance for loading annotations and categories.
+        show_class_name (bool): If True, displays the class name for each annotation.
+        show_bbox (bool): If True, displays the bounding box for each annotation.
+
+    Returns:
+        PIL.Image: Image with overlaid mask annotations.
+    """
+    # Convert PIL image to RGBA format for transparency handling
+    image = image.convert("RGBA")
+    overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))  # transparent overlay
+    
+    for ann in annotations:
+        # Get mask
+        if 'segmentation' in ann:
+            if isinstance(ann['segmentation'], list):
+                # Polygon format
+                rle = maskUtils.frPyObjects(ann['segmentation'], image.height, image.width)
+                mask = maskUtils.decode(rle)
+            else:
+                # RLE format
+                mask = maskUtils.decode(ann['segmentation'])
+        else:
+            print("No segmentation found in annotation")
+            continue
+
+        # Draw mask with transparency
+        color = np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
+        mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode='L')
+        colored_mask = Image.new("RGBA", image.size, tuple(color))
+        overlay.paste(colored_mask, (0, 0), mask_img)
+
+        # Draw contours
+        contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        draw = ImageDraw.Draw(overlay)
+        for contour in contours:
+            contour = contour[:, 0, :]  # Reshape for plotting
+            contour_points = [(int(x), int(y)) for x, y in contour]
+            draw.line(contour_points + [contour_points[0]], fill=tuple(color), width=2)
+
+        # Show bounding box if requested
+        if show_bbox and 'bbox' in ann:
+            bbox = ann['bbox']
+            x, y, w, h = bbox
+            draw.rectangle([(x, y), (x + w, y + h)], outline=tuple(color), width=2)
+
+        # Show class name if requested
+        if show_class_name:
+            cat_id = ann['category_id']
+            category = coco.loadCats(cat_id)[0]['name']
+            draw.text((x, y), category, fill=tuple(color))
+
+    # Composite overlay with the original image
+    annotated_image = Image.alpha_composite(image, overlay)
+    return annotated_image.convert("RGB")  # Convert back to RGB for displaying without transparency issues
+

@@ -2,6 +2,8 @@ import os
 import zipfile
 import gdown
 
+DATASET_ROOT_PATH = os.getenv("JSRT_ROOT_PATH")
+
 # Define the Google Drive file URL or ID
 file_id = '1L5QOTuqQ9OjTwP0hol_mjUDMWQPcLHSA'  # Replace with your file ID
 destination = 'jsrt.zip'  # Destination path for the downloaded ZIP file
@@ -11,7 +13,7 @@ gdown.download(f'https://drive.google.com/uc?id={file_id}', destination, quiet=F
 
 # Unzip the file
 with zipfile.ZipFile(destination, 'r') as zip_ref:
-    zip_ref.extractall('jsrt')  # Destination folder for unzipped contents
+    zip_ref.extractall(DATASET_ROOT_PATH)  # Destination folder for unzipped contents
 
 # Delete the downloaded ZIP file
 if os.path.exists(destination):
