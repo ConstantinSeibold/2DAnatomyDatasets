@@ -204,6 +204,8 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
             print("No segmentation found in annotation")
             continue
 
+        mask = np.squeeze(mask)
+        # import pdb;pdb.set_trace()
         # Draw mask with transparency
         color = np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
         mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode='L')
@@ -234,3 +236,36 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
     annotated_image = Image.alpha_composite(image, overlay)
     return annotated_image.convert("RGB")  # Convert back to RGB for displaying without transparency issues
 
+def visualize_multiclass(image, mask, label_dict):
+    """
+    Visualize multiclass segmentation by overlaying a segmentation mask on the input image.
+
+    Args:
+        image (np.ndarray or PIL.Image.Image): Input image to overlay the mask on.
+        mask (np.ndarray): Segmentation mask (H x W) where each pixel value corresponds to a class index.
+        label_dict (dict): Dictionary mapping class indices to class labels.
+
+    Returns:
+        np.ndarray: Image with segmentation mask overlay and optional class labels.
+    """
+    # Ensure the image is in RGB format
+    if isinstance(image, Image.Image):
+        image = np.array(image.convert("RGB"))
+    elif len(image.shape) == 2 or image.shape[2] == 1:  # Grayscale to RGB
+        image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
+
+    # Generate colors
+    n_classes = len(label_dict)
+    colors = get_colors(n_classes)
+    colors_alpha = get_colors_alpha(colors)
+
+    # Create an RGBA overlay for the mask
+    overlay = np.zeros((*mask.shape, 4), dtype=np.uint8)
+    for label, color in enumerate(colors_alpha):
+        overlay[mask == label] = np.array(color) * 255  # Apply color to each class
+
+    # Composite the overlay with the original image
+    overlay_rgb = cv2.cvtColor(overlay, cv2.COLOR_RGBA2RGB)  # Drop alpha for display
+    combined = cv2.addWeighted(image, 0.6, overlay_rgb, 0.4, 0)
+
+    return Image.fromarray(combined)

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from . import BaseMultiLabelDataset, BaseDetectionDataset
+from .base_dataloaders import BaseMultiLabelDataset, BaseDetectionDataset
 
 class PAXRay4_binary_Dataset(BaseMultiLabelDataset):
     def __init__(self, root_dir, splits_json, split, transform=None):

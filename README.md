@@ -1,152 +1,117 @@
-# Anatomy in Chest X-Ray - Datasets
+# 2D Anatomy Segmentation Datasets Repository  
 
-Welcome to the PAXRay and PAXRay++ datasets! These datasets provide a detailed foundation for segmentation of anatomical structures in X-ray images, utilizing projections of 3D CT scans to simulate high-quality 2D radiographs with fine-grained anatomical labels. This README explains the datasets' content, structure, and provides resources such as data loaders and basic training scripts for segmentation models.
-
----
-
-## Table of Contents
-- [Overview](#overview)
-    - [JSRT](#JSRT)
-    - [PAXRay](#paxray)
-    - [PAXRay++](#paxray++)
-- [Access](#access)
-- [Usage](#usage)
-- [Citation](#citation)
+Welcome to the **2D Anatomy Segmentation Datasets** repository! This project provides a collection of scripts, tools, and datasets to streamline training and evaluation for anatomical segmentation tasks in medical imaging. Whether you're a researcher or practitioner in the medical imaging field, this repository is designed to collect 2D anatomical datasets and make it easy to download, process, and visualize data from various imaging modalities.
 
 ---
 
-## Overview
+## 📦 **Datasets Included**
 
-### JSRT Database
+This repository supports the following publicly available datasets:
 
-<details>
-  <summary> Expand for details of JSRT</summary>
-The Standard Digital Image Database of chest radiographs with and without a lung nodule was developed as part of the research activities of the Academic Committee of the Japanese Society of Radiological Technology (JSRT) in 1998 (*1), supported by the Japan Radiological Society (JRS) and with the cooperation of healthcare facilities in Japan and the United States for providing case materials. 
-
-- **247 images** in both frontal and lateral views.
-- **5 anatomical classes** available [here](documentation/labelset_jsrt.md).
-
-</details>
-
-
-<details>
-  <summary> Expand for Data Licence </summary>
-</details>
-
-
-### PAXRay
-
-
-<details>
-  <summary> Expand for details of PAXRay-4 </summary>
-  
-  PAXRay is based on the RibFrac CT dataset and provides **880 X-ray-like images** by projecting CT data to a 2D plane, imitating traditional X-ray imagery. The dataset is equipped with **multi-label segmentation masks**:
-- **880 images** in both frontal and lateral views.
-    - ``train``: 
-    - ``validation``:
-    - ``test``: 
-- **4 anatomical classes** that include lungs, bones, mediastinum, diaphragm. The  categories are available [here](documentation/labelset_paxray.md).
-</details>
-
-<details>
-  <summary> Expand for details of PAXRay-166 </summary>
-  
-  \
-  PAXRay is based on the RibFrac CT dataset and provides **880 X-ray-like images** by projecting CT data to a 2D plane, imitating traditional X-ray imagery. The dataset is equipped with **multi-label segmentation masks**:
-- **880 images** in both frontal and lateral views.
-    - ``train``: 
-    - ``validation``:
-    - ``test``: 
-- **166 anatomical classes** that include both fine-grained (92 individual anatomical structures) and super-class categories available [here](documentation/labelset_paxray.md).
-
-</details>
-
-
-<details>
-  <summary> Expand for Data Information </summary>
-  
-#### Data Access
-
-- [gDrive](https://drive.google.com/drive/folders/1rzlsZ0bfByRMBoywOPWZW08GNgIwCU9P?usp=sharing)
-
-#### Dataset Structure
-
-`File Naming Convention`
-
-Each image and its corresponding mask file share the same base name for easy pairing. For example:
-
-| Path | Description |
-| :--- | :----------
-| [paxray_dataset](https://drive.google.com/drive/folders/1rzlsZ0bfByRMBoywOPWZW08GNgIwCU9P?usp=sharing) | Main folder.
-| &boxvr;&nbsp; images | Contains the proposed loss formulation for both Tensorflow and Pytorch
-| &boxv;&nbsp; &ensp;&ensp; &boxvr;&nbsp; RibFrac1frontal.png | projected CT image of shape 512x512
-| &boxv;&nbsp; &ensp;&ensp; &boxvr;&nbsp; ... | 
-| &boxvr;&nbsp; labels | Contains scripts for recreating the FCC dataset and data preparations for training/testing
-| &boxv;&nbsp; &ensp;&ensp; &boxvr;&nbsp; RibFrac1frontal.npy | binary segmentation masks in numpy format of shape 166x512x512
-| &boxv;&nbsp; &ensp;&ensp; &boxvr;&nbsp; ... | 
-| paxray_half.json | associated supplimentary notes (85.6 MB)
-| paxray_quarter.json | associated supplimentary notes (85.6 MB)
-| paxray_half.json | associated supplimentary notes (85.6 MB)
-
-</details>
-
-<details>
-  <summary> Expand for Data Licence </summary>
-</details>
-
-
-
-### PAXRay++
-
-<details>
-  <summary> Expand for details of PAXRay++ </summary>
-PAXRay++ expands on PAXRay, introduced by Seibold et al., and is constructed using pseudo-labeled thoracic CTs. This dataset is ideal for fine-grained segmentation of anatomy within chest X-rays.
-- **7,377 images** in both frontal and lateral views.
-- **157 anatomical classes** and over **2 million annotated instances** across the dataset available [here](documentation/labelset_paxray++.md).
-</details>
+| Dataset         | Modality         | #Images               | Description                                                                                      | Link                             |
+|------------------|------------------|--------------------------------|--------------------------------------------------------------------------------------------------|----------------------------------|
+| **BS80k**       | Scintigraphy    |       6,494         | Large-scale dataset for anatomy segmentation in nuclear imaging.                                   | [Link](https://pubmed.ncbi.nlm.nih.gov/36334360/)                       |
+| **JSRT**        | Chest X-Ray   |        247         | Dataset of chest radiographs for lung segmentation.                                              | [Link](db.jsrt.or.jp/eng.php)                       |
+| **PAX-Ray**     | Chest X-Ray    |       852         | Dataset for fine-grained anatomy  segmentation.                                                  | [Link](https://constantinseibold.github.io/paxray.html)                       |
+| **PAX-Ray++**   | Chest X-Ray    |      14,754         | Enhanced version of PAX-Ray with additional annotations.                                         | [Link](https://constantinseibold.github.io/paxray.html)                       |
+| **DUKE**        | Optical Coherence Tomography  | 110 | OCT dataset for retinal layer segmentation.                                                     | [Link](https://people.duke.edu/~sf59/Chiu_BOE_2014_dataset.htm)                       |
+| **RAVIR**       | Infrared Reflectance Imaging   | 23 |Dataset for retinal vessel segmentation from infrared images.                                    | [Link](https://ravir.grand-challenge.org/data/)                       |
+| **Teeth**       | Panoramic X-Ray     |     598       | Dataset of dental X-rays for teeth segmentation.                                                 | [Link](https://www.kaggle.com/datasets/humansintheloop/teeth-segmentation-on-dental-x-ray-images/discussion?sort=published)                       |
 
 ---
 
+## 📁 **Repository Structure**  
+Here’s an overview of the repository's structure:
 
+```plaintext
+src/
+│
+├── data/                        # PyTorch dataloaders for all datasets
+│
+├── prepare_data/
+│   ├── prepare_bs80k/                   # Scripts for processing the anatomical segmentations of BS80k dataset
+│   ├── prepare_jsrt/                    # Scripts for processing the JSRT dataset
+│   ├── prepare_paxray/                 # Scripts for processing the PAX-Ray dataset
+│   ├── prepare_paxraypp/               # Scripts for processing the PAX-Ray++ dataset
+│   ├── prepare_duke/                    # Scripts for processing the DUKE dataset
+│   ├── prepare_ravir/                   # Scripts for processing the RAVIR dataset
+│   └── prepare_teeth_kaggle/                   # Scripts for processing the Teeth dataset
+│
+├── visualization/
+│   └── visualize.py             # Utility scripts for visualizing dataset samples
+│
+├── Notebooks/
+│   └── Download_datasets.ipynb    # shows how to setup all the datasets
+│   └── Dataloader_example.ipynb   # Examples for to setup the dataloaders for each dataset and visualize annotations
+
+```
 
 
 ---
 
-## Access
+## ⚙️ **Features**
+
+### 🛠 **Data Preparation**
+Each dataset includes standardized processing scripts to ensure consistency across datasets. These scripts:  
+- Download the raw data.  
+- Normalize and preprocess the images.  
+- Prepare data splits (train/val/test).  
+- Create PyTorch-friendly formats.
+
+### 📊 **Data Visualization**
+Use the scripts in `src/visualization` to visualize the datasets, ground-truth labels, and predictions for easy inspection of data quality.
+
+### 🚀 **Training Pipeline Integration**
+Prepared datasets can be plugged directly into any PyTorch-based segmentation model for training and evaluation.
 
 ---
 
-## Usage
+## 🚀 **Getting Started**
 
-### Data Loading
-
-To facilitate model training and evaluation, we provide PyTorch data loaders for PAXRay and PAXRay++. These data loaders will handle the structure of both datasets, allowing easy access to images and masks.
-
-#### Prerequisites
-Ensure you have `torch` and `torchvision` installed:
+### 1️⃣ Clone the Repository  
 ```bash
-pip install torch torchvision
+git clone https://github.com/yourusername/2D-Anatomy-Segmentation-Datasets.git
+cd 2D-Anatomy-Segmentation-Datasets
 ```
 
-## Citation
-
-If you use PAXRay or PAXRay++ in your research, please cite the relevant papers as follows:
-
-```bibtex
-
-@article{paxray,
-  title = {PAXRay: A Projected Dataset for the Segmentation of Anatomical Structures in X-Ray Data},
-  author = {Authors},
-  journal = {Journal Name},
-  year = {Year},
-  pages = {xx--xx}
-}
-
-@article{paxrayplusplus,
-  title = {Accurate Fine-Grained Segmentation of Human Anatomy in Radiographs via Volumetric Pseudo-Labeling},
-  author = {Seibold et al.},
-  journal = {Journal Name},
-  year = {Year},
-  pages = {xx--xx}
-}
+### 2️⃣ Install Dependencies  
+```bash
+pip install -r requirements.txt
 ```
+
+### 3️⃣ Prepare the Data  
+Run the dataset preparation script for the dataset of interest. For example:  
+```bash
+sh src/prepare_data/prepare_bs80k/get_bs80k_full.sh
+
+sh src/prepare_data/prepare_jsrt/get_jsrt_full.sh
+
+...
+```
+
+### 4️⃣ Visualize the Data  
+To visualize samples:  
+```bash
+python src/visualization/visualize.py --dataset BS80k
+```
+
+---
+
+## 🤝 **Contributions**
+Contributions are welcome! If you'd like to add support for more datasets, improve baseline performance, or enhance data preparation scripts, feel free to open a pull request.
+
+---
+
+## 📜 **License**
+This project is licensed under the [MIT License](LICENSE).  
+
+---
+
+## 💬 **Contact**
+For questions or feedback, feel free to reach out:  
+📧 Email: constantinseibold[at]gmail.com  
+🔗 [GitHub Issues](https://github.com/ConstantinSeibold/2DAnatomyDatasets/issues)  
+
+---
+
+Enjoy building robust segmentation models with these datasets! 😊  

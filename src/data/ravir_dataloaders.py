@@ -1,3 +1,3 @@
-from . import BaseMultiClassDataset
+from .base_dataloaders import BaseMultiClassDataset
 
-ravir_dataset = BaseMultiClassDataset
+RAVIR_Dataset = BaseMultiClassDataset

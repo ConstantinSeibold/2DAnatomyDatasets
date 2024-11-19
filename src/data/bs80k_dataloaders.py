@@ -1,3 +1,3 @@
-from . import BaseMultiLabelDataset, BaseDetectionDataset
+from .base_dataloaders import BaseMultiLabelDataset, BaseDetectionDataset
 
 BS80KAnatomy_detection_Dataset = BaseDetectionDataset

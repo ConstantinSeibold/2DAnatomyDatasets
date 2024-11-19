@@ -49,10 +49,10 @@ def create_duke_dataset_splits(root_folder, dataset_name, validation_split=0.2, 
     # Create splits dictionary
     splits = {
         "name": dataset_name,
-        "label_dictionary": label_dictionary,
-        "train": [{"image": img, "target": lbl} for img, lbl in zip(train_images_split, train_labels_split)],
-        "val": [{"image": img, "target": lbl} for img, lbl in zip(val_images_split, val_labels_split)],
-        "test": [{"image": img, "target": lbl} for img, lbl in zip(test_images, test_labels)]
+        "label_dict": label_dictionary,
+        "train": [{"image": img.replace(root_folder, ""), "target": lbl.replace(root_folder, "")} for img, lbl in zip(train_images_split, train_labels_split)],
+        "val": [{"image": img.replace(root_folder, ""), "target": lbl.replace(root_folder, "")} for img, lbl in zip(val_images_split, val_labels_split)],
+        "test": [{"image": img.replace(root_folder, ""), "target": lbl.replace(root_folder, "")} for img, lbl in zip(test_images, test_labels)]
     }
 
     # Save the splits to a JSON file

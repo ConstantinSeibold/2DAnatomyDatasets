@@ -1,3 +1,3 @@
-from . import BaseMultiClassDataset
+from .base_dataloaders import BaseDetectionDataset
 
-teeth_dataset = BaseDetectionClassDataset
+Teeth_Dataset = BaseDetectionDataset

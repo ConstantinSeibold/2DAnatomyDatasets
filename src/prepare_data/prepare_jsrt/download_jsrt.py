@@ -13,7 +13,11 @@ gdown.download(f'https://drive.google.com/uc?id={file_id}', destination, quiet=F
 
 # Unzip the file
 with zipfile.ZipFile(destination, 'r') as zip_ref:
-    zip_ref.extractall(DATASET_ROOT_PATH)  # Destination folder for unzipped contents
+    zip_ref.extractall("jsrt_tmp")  # Destination folder for unzipped contents
+
+# import pdb; pdb.set_trace()
+shutil.copytree(os.path.join("jsrt_tmp", "jsrt"),DATASET_ROOT_PATH)
+shutil.rmtree("jsrt_tmp")
 
 # Delete the downloaded ZIP file
 if os.path.exists(destination):

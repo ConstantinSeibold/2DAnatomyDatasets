@@ -1,3 +1,3 @@
-from . import BaseMultiClassDataset
+from .base_dataloaders import BaseMultiClassDataset
 
-duke_dataset = BaseMultiClassDataset
+DUKE_Dataset = BaseMultiClassDataset

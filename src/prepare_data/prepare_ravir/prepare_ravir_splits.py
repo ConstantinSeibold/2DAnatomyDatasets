@@ -36,9 +36,9 @@ def create_dataset_splits(root_folder, dataset_name, label_dictionary, validatio
     # Create splits dictionary
     splits = {
         "name": dataset_name,
-        "label_dictionary": label_dictionary,
-        "train": [{"image": img, "target": mask} for img, mask in zip(train_images_split, train_masks_split)],
-        "val": [{"image": img, "target": mask} for img, mask in zip(val_images_split, val_masks_split)],
+        "label_dict": label_dictionary,
+        "train": [{"image": img.replace(root_folder,""), "target": mask.replace(root_folder,"")} for img, mask in zip(train_images_split, train_masks_split)],
+        "val": [{"image": img.replace(root_folder,""), "target": mask.replace(root_folder,"")} for img, mask in zip(val_images_split, val_masks_split)],
         "test": test_data
     }
 
