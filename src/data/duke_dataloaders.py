@@ -1,1 +1,3 @@
-from . import BaseMultiLabelDataset, BaseDetectionDataset
+from . import BaseMultiClassDataset
+
+duke_dataset = BaseMultiClassDataset

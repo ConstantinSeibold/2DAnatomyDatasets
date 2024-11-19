@@ -4,12 +4,9 @@ from skimage.transform import resize
 from tqdm import tqdm
 import scipy.io
 import glob
+import shutil
 from PIL import Image
 
-# Define output folders
-dataset_folder = os.getenv("DUKE_ROOT_PATH")
-output_images_folder = 'images'
-output_labels_folder = 'labels'
 
 def get_valid_idx(manual_layer: np.ndarray) -> list[int]:
     """
@@ -88,16 +85,23 @@ def load_and_save_dataset():
     os.makedirs(output_images_folder, exist_ok=True)
     os.makedirs(output_labels_folder, exist_ok=True)
 
-    file_paths = glob.glob(f"{dataset_folder}/*.mat")
+    file_paths = glob.glob(f"{dataset_folder}/2015_BOE_Chiu/*.mat")
     images, labels = create_pipeline(file_paths)
 
     for i, (image, label) in enumerate(zip(images, labels)):
         Image.fromarray(image.astype(np.uint8)).save(os.path.join(output_images_folder, f'image_{i}.png'))
         Image.fromarray(label.astype(np.uint8)).save(os.path.join(output_labels_folder, f'label_{i}.png'))
 
+    shutil.rmtree(f"{dataset_folder}/2015_BOE_Chiu/")
+    
     print("Image and label saving complete.")
     print("Dataset processing complete. Images and labels saved.")
 
 
 if __name__ == "__main__":
+    
+    # Define output folders
+    dataset_folder = os.getenv("DUKE_ROOT_PATH")
+    output_images_folder = os.path.join(dataset_folder, 'images')
+    output_labels_folder = os.path.join(dataset_folder, 'labels')
     load_and_save_dataset()

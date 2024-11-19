@@ -3,8 +3,8 @@ import zipfile
 import gdown
 
 # Define the Google Drive file URL or ID
-file_id = '1aoIwyxXSEyXDP9An-b2fsUNsZpAjxAVK'  # Replace with your file ID
-destination = 'bs80k.zip'  # Destination path for the downloaded ZIP file
+file_id = '13vY-cWpTYoOfUGjThYLCoh57DMNi_8R7'  # Replace with your file ID
+destination = 'bs80k_labels.zip'  # Destination path for the downloaded ZIP file
 
 # Download the file from Google Drive
 gdown.download(f'https://drive.google.com/uc?id={file_id}', destination, quiet=False)

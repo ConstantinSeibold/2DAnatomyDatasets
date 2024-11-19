@@ -1,1 +1,1 @@
-from .base_dataloaders import BaseMultiLabelDataset, BaseDetectionDataset
+from .base_dataloaders import BaseMultiLabelDataset, BaseMultiClassDataset, BaseDetectionDataset

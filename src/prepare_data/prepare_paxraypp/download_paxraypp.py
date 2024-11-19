@@ -11,7 +11,7 @@ gdown.download(f'https://drive.google.com/uc?id={file_id}', destination, quiet=F
 
 # Unzip the file
 with zipfile.ZipFile(destination, 'r') as zip_ref:
-    zip_ref.extractall('paxraypp')  # Destination folder for unzipped contents
+    zip_ref.extractall(os.getenv("PAXRAYPP_ROOT"))  # Destination folder for unzipped contents
 
 # Delete the downloaded ZIP file
 if os.path.exists(destination):
