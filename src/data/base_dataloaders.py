@@ -98,7 +98,7 @@ class BaseDetectionDataset(CocoDetection):
             image = np.array(image)#[:,:,0]
             masks = masks.transpose([2,0,1])
             
-            augmented = self.transforms(image=image, bboxes=bboxes, masks=masks, labels=labels)
+            augmented = self.transforms(image=image, bboxes=bboxes, masks=[i for i in masks], labels=labels)
             image = augmented['image']
             bboxes = augmented['bboxes']
             masks = augmented['masks']
