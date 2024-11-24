@@ -12,10 +12,10 @@ def get_colors(n_labels):
     return [cc.cm.glasbey_bw_minc_20(i) for i in range(n_labels)]
 
 def get_colors_alpha(colors):
-    return [[i[0],i[1],i[2],i[3]/2] for i in colors]
+    return [(np.array([i[0],i[1],i[2],i[3]/2])*255).astype(np.uint8) for i in colors]
 
 def get_category_colors(colors):
-    return {colors[i][:3]: i for i in range(len(colors))}
+    return {i:(np.array(colors[i][:3])*255).astype(np.uint8) for i in range(len(colors))}
 
 def visualize_label(label: np.array, 
                     img: np.array, 
@@ -190,6 +190,11 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
     image = image.convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))  # transparent overlay
     
+    
+    colors = get_colors(coco)
+    colors_alpha = get_colors_alpha(colors)
+    category_colors = get_category_colors(colors)
+    
     for ann in annotations:
         # Get mask
         if 'segmentation' in ann:
@@ -207,12 +212,30 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
         mask = np.squeeze(mask)
         # import pdb;pdb.set_trace()
         # Draw mask with transparency
-        color = np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
+        color = colors_alpha[ann["category_id"]] #np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
         mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode='L')
         colored_mask = Image.new("RGBA", image.size, tuple(color))
         overlay.paste(colored_mask, (0, 0), mask_img)
 
         # Draw contours
+    for ann in annotations:
+        # Get mask
+        if 'segmentation' in ann:
+            if isinstance(ann['segmentation'], list):
+                # Polygon format
+                rle = maskUtils.frPyObjects(ann['segmentation'], image.height, image.width)
+                mask = maskUtils.decode(rle)
+            else:
+                # RLE format
+                mask = maskUtils.decode(ann['segmentation'])
+        else:
+            print("No segmentation found in annotation")
+            continue
+
+        mask = np.squeeze(mask)
+        
+        color = category_colors[ann["category_id"]] 
+        
         contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         draw = ImageDraw.Draw(overlay)
         for contour in contours:
