@@ -193,6 +193,8 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
     
+    offset = 0 if 0 in coco.cats.keys() else 1
+    
     for ann in annotations:
         # Get mask
         if 'segmentation' in ann:
@@ -210,7 +212,7 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
         mask = np.squeeze(mask)
         # import pdb;pdb.set_trace()
         # Draw mask with transparency
-        color = colors_alpha[ann["category_id"]-1] #np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
+        color = colors_alpha[ann["category_id"]-offset] #np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
         mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode='L')
         colored_mask = Image.new("RGBA", image.size, tuple(color))
         overlay.paste(colored_mask, (0, 0), mask_img)
@@ -232,7 +234,7 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
 
         mask = np.squeeze(mask)
         
-        color = category_colors[ann["category_id"]-1] 
+        color = category_colors[ann["category_id"]-offset] 
         
         contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         draw = ImageDraw.Draw(overlay)
