@@ -191,7 +191,7 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))  # transparent overlay
     
     
-    colors = get_colors(coco)
+    colors = get_colors(coco.loadCats(cat_id))
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
     
