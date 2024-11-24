@@ -9,13 +9,13 @@ import torch, os, json
 from skimage.color import label2rgb
 
 def get_colors(n_labels):
-    return [cc.cm.glasbey_bw_minc_20(i) for i in range(n_labels)]
+    return [[int(a*255) for a in cc.cm.glasbey_bw_minc_20(i)] for i in range(n_labels)]
 
 def get_colors_alpha(colors):
-    return [(np.array([i[0],i[1],i[2],i[3]/2])*255).astype(np.uint8) for i in colors]
+    return [(np.array([i[0],i[1],i[2],i[3]/2])).astype(np.uint8).tolist() for i in colors]
 
 def get_category_colors(colors):
-    return {i:(np.array(colors[i][:3])*255).astype(np.uint8) for i in range(len(colors))}
+    return {i:(np.array(colors[i][:3])).astype(np.uint8) for i in range(len(colors))}
 
 def visualize_label(label: np.array, 
                     img: np.array, 
@@ -42,7 +42,7 @@ def visualize_label(label: np.array,
     colors = get_colors(label.shape[0])
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
-
+    # import pdb; pdb.set_trace()
     out_mask = np.zeros((img.shape[0],img.shape[1],3)).astype(np.uint8)
 
     for i in label_to_visualize:
@@ -54,8 +54,7 @@ def visualize_label(label: np.array,
                 cv2.fillPoly(
                              out_mask, 
                              contour, 
-                             # [int(j*255) for j in colors[i]],
-                            [colors_alpha[i][0]*255,colors_alpha[i][1]*255,colors_alpha[i][2]*255,colors_alpha[i][3]],
+                            [colors_alpha[i][0],colors_alpha[i][1],colors_alpha[i][2],colors_alpha[i][3]],
                             )
         
     out_contour = np.zeros((img.shape[0],img.shape[1],3)).astype(np.uint8)
@@ -65,7 +64,7 @@ def visualize_label(label: np.array,
         x = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         for contour in x:
             if (contour is not None) and (len(contour) > 0) and  (len(contour[0])>2)  and (type(contour) == type(())):
-                cv2.drawContours(out_contour, contour, -1, [int(j*255) for j in colors[i]], 2)
+                cv2.drawContours(out_contour, contour, -1, colors[i], 2)
     
     out = cv2.addWeighted(out_contour, 1, out_mask, 0.7, 0.0)
     out = cv2.addWeighted(img, 0.5, out, 0.7, 0.0)
@@ -190,8 +189,7 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
     image = image.convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))  # transparent overlay
     
-    
-    colors = get_colors(coco.loadCats(cat_id))
+    colors = get_colors(len(coco.cats))
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
     
@@ -212,7 +210,7 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
         mask = np.squeeze(mask)
         # import pdb;pdb.set_trace()
         # Draw mask with transparency
-        color = colors_alpha[ann["category_id"]] #np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
+        color = colors_alpha[ann["category_id"]-1] #np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
         mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode='L')
         colored_mask = Image.new("RGBA", image.size, tuple(color))
         overlay.paste(colored_mask, (0, 0), mask_img)
@@ -234,7 +232,7 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
 
         mask = np.squeeze(mask)
         
-        color = category_colors[ann["category_id"]] 
+        color = category_colors[ann["category_id"]-1] 
         
         contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         draw = ImageDraw.Draw(overlay)

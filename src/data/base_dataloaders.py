@@ -95,7 +95,7 @@ class BaseDetectionDataset(CocoDetection):
 
         if self.transforms is not None:
             image = image.convert("RGB")
-            image = np.array(image)[:,:,0]
+            image = np.array(image)#[:,:,0]
             masks = masks.transpose([2,0,1])
             
             augmented = self.transforms(image=image, bboxes=bboxes, masks=masks, labels=labels)
@@ -104,6 +104,7 @@ class BaseDetectionDataset(CocoDetection):
             masks = augmented['masks']
             labels = augmented["labels"]
             target = {
+                'image': torch.tensor(image),
                 'boxes': torch.tensor(bboxes, dtype=torch.float32),
                 'masks': torch.stack(masks, 0),
                 'labels': torch.tensor(labels, dtype=torch.int64),
@@ -111,6 +112,7 @@ class BaseDetectionDataset(CocoDetection):
             }
         else:
             target = {
+                'image': torch.tensor(np.array(image)),
                 'boxes': torch.tensor(bboxes, dtype=torch.float32),
                 'masks': torch.tensor(masks),
                 'labels': torch.tensor(labels, dtype=torch.int64),
