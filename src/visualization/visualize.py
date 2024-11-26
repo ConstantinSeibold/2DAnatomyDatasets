@@ -8,21 +8,31 @@ import numpy as np, torchvision
 import torch, os, json
 from skimage.color import label2rgb
 
+
 def get_colors(n_labels):
-    return [[int(a*255) for a in cc.cm.glasbey_bw_minc_20(i)] for i in range(n_labels)]
+    return [
+        [int(a * 255) for a in cc.cm.glasbey_bw_minc_20(i)] for i in range(n_labels)
+    ]
+
 
 def get_colors_alpha(colors):
-    return [(np.array([i[0],i[1],i[2],i[3]/2])).astype(np.uint8).tolist() for i in colors]
+    return [
+        (np.array([i[0], i[1], i[2], i[3] / 2])).astype(np.uint8).tolist()
+        for i in colors
+    ]
+
 
 def get_category_colors(colors):
-    return {i:(np.array(colors[i][:3])).astype(np.uint8) for i in range(len(colors))}
+    return {i: (np.array(colors[i][:3])).astype(np.uint8) for i in range(len(colors))}
 
-def visualize_label(label: np.array, 
-                    img: np.array, 
-                    label_to_visualize: np.array, 
-                    concat:bool = False, 
-                    axis:int = 1
-                   ) -> Image:
+
+def visualize_label(
+    label: np.array,
+    img: np.array,
+    label_to_visualize: np.array,
+    concat: bool = False,
+    axis: int = 1,
+) -> Image:
     """
     visualize certain labels from mask
 
@@ -32,55 +42,72 @@ def visualize_label(label: np.array,
         img:    Image in shape [classes (159), width, height]
         concat: Whether to display image and visualization side by side
         axis:   axis at which image and visualization are shown side by side
-        
+
     Returns
     ----------
         visualization: Label visualization as PIL Image
-        
+
     """
-    
+
     colors = get_colors(label.shape[0])
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
     # import pdb; pdb.set_trace()
-    out_mask = np.zeros((img.shape[0],img.shape[1],3)).astype(np.uint8)
+    out_mask = np.zeros((img.shape[0], img.shape[1], 3)).astype(np.uint8)
 
     for i in label_to_visualize:
-        imgray = (label[i,:,:]*255).astype(np.uint8)
+        imgray = (label[i, :, :] * 255).astype(np.uint8)
         ret, thresh = cv2.threshold(imgray, 127, 255, 0)
         x = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         for contour in x:
-            if (contour is not None) and (len(contour) > 0) and  (len(contour[0])>2) and (type(contour) == type(())):
+            if (
+                (contour is not None)
+                and (len(contour) > 0)
+                and (len(contour[0]) > 2)
+                and (type(contour) == type(()))
+            ):
                 cv2.fillPoly(
-                             out_mask, 
-                             contour, 
-                            [colors_alpha[i][0],colors_alpha[i][1],colors_alpha[i][2],colors_alpha[i][3]],
-                            )
-        
-    out_contour = np.zeros((img.shape[0],img.shape[1],3)).astype(np.uint8)
+                    out_mask,
+                    contour,
+                    [
+                        colors_alpha[i][0],
+                        colors_alpha[i][1],
+                        colors_alpha[i][2],
+                        colors_alpha[i][3],
+                    ],
+                )
+
+    out_contour = np.zeros((img.shape[0], img.shape[1], 3)).astype(np.uint8)
     for i in label_to_visualize:
-        imgray = (label[i,:,:]*255).astype(np.uint8)
+        imgray = (label[i, :, :] * 255).astype(np.uint8)
         ret, thresh = cv2.threshold(imgray, 127, 255, 0)
         x = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         for contour in x:
-            if (contour is not None) and (len(contour) > 0) and  (len(contour[0])>2)  and (type(contour) == type(())):
+            if (
+                (contour is not None)
+                and (len(contour) > 0)
+                and (len(contour[0]) > 2)
+                and (type(contour) == type(()))
+            ):
                 cv2.drawContours(out_contour, contour, -1, colors[i], 2)
-    
+
     out = cv2.addWeighted(out_contour, 1, out_mask, 0.7, 0.0)
     out = cv2.addWeighted(img, 0.5, out, 0.7, 0.0)
-    
-    if concat:
-        return Image.fromarray(np.concatenate([img, out],axis)).convert('RGB')
-    else:
-        return Image.fromarray(out).convert('RGB')
 
-def visualize_mask(class_names: list, 
-                   mask:np.array,
-                   image:np.array,
-                   img_size: int,
-                   cat:bool=True,
-                   axis:int=1,
-                  ) -> Image:
+    if concat:
+        return Image.fromarray(np.concatenate([img, out], axis)).convert("RGB")
+    else:
+        return Image.fromarray(out).convert("RGB")
+
+
+def visualize_mask(
+    class_names: list,
+    mask: np.array,
+    image: np.array,
+    img_size: int,
+    cat: bool = True,
+    axis: int = 1,
+) -> Image:
     """
     Resize image and label to desired size and visualize certain labels
 
@@ -92,52 +119,59 @@ def visualize_mask(class_names: list,
         img_size: Desired image size
         cat: Whether to display image and visualization side by side
         axis:   axis at which image and visualization are shown side by side
-        
+
     Returns
     ----------
         visualization: Label visualization as PIL Image in desired size
-        
+
     """
-    
+
     colors = get_colors(mask.shape[0])
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
-    
-    # Resize image and label to desired size
-    img = torch.nn.functional.interpolate(
-                torch.tensor(image).float().unsqueeze(0),
-                img_size,
-                mode='bilinear'
-            ).byte().numpy()[0]
-        
-        # reshape to match cv2 shapes
-    img = np.transpose(img, [1,2,0])
-    
-    label = torch.nn.functional.interpolate(
-                torch.tensor(mask).float().unsqueeze(0),
-                img_size,
-                mode='nearest'
-            ).bool().numpy()[0]
 
-    
+    # Resize image and label to desired size
+    img = (
+        torch.nn.functional.interpolate(
+            torch.tensor(image).float().unsqueeze(0), img_size, mode="bilinear"
+        )
+        .byte()
+        .numpy()[0]
+    )
+
+    # reshape to match cv2 shapes
+    img = np.transpose(img, [1, 2, 0])
+
+    label = (
+        torch.nn.functional.interpolate(
+            torch.tensor(mask).float().unsqueeze(0), img_size, mode="nearest"
+        )
+        .bool()
+        .numpy()[0]
+    )
+
     if type(class_names) == list:
         pass
     else:
         class_names = [class_names]
-    
-    label_to_visualize = np.concatenate([np.array(label_mapper[n]).flatten() for n in class_names]).flatten()
-    
-    return visualize_label(label, img,  label_to_visualize, cat, axis)
 
-def visualize_from_file(class_names: list, 
-                         img_path: str, 
-                         label_path: str, 
-                         img_size: int, 
-                         cat:bool = True, 
-                         axis:int = 1, 
-                         do_store:bool = False,
-                         out_dir:str = '',
-                        ) -> Image:
+    label_to_visualize = np.concatenate(
+        [np.array(label_mapper[n]).flatten() for n in class_names]
+    ).flatten()
+
+    return visualize_label(label, img, label_to_visualize, cat, axis)
+
+
+def visualize_from_file(
+    class_names: list,
+    img_path: str,
+    label_path: str,
+    img_size: int,
+    cat: bool = True,
+    axis: int = 1,
+    do_store: bool = False,
+    out_dir: str = "",
+) -> Image:
     """
     Load Image and label, resize image and label to desired size, and visualize certain labels
 
@@ -149,14 +183,14 @@ def visualize_from_file(class_names: list,
         img_size: size at which the image should be visualized
         cat: show image and label side by side
         axis: axis at which image and label are shown side by side
-        do_store: boolean indicating whether to store the visualization in the out_dir 
+        do_store: boolean indicating whether to store the visualization in the out_dir
                             with the associated label path and class_name
         out_dir: path at which to store visualization
-        
+
     Returns
     ----------
         visualization: Pillow Image with labels overlaying original image
-        
+
     """
 
     # Load image and label files
@@ -166,12 +200,20 @@ def visualize_from_file(class_names: list,
     visualization = visualize_mask(class_names, label, img, img_size, cat, axis)
     if do_store:
         os.makedirs(os.path.dirname(out_dir), exist_ok=True)
-        visualization.save(os.path.join(
-            out_dir,
-            '{}_{}.png'.format(os.path.basename(label_path).split('.')[0], '_'.join(class_names))))
+        visualization.save(
+            os.path.join(
+                out_dir,
+                "{}_{}.png".format(
+                    os.path.basename(label_path).split(".")[0], "_".join(class_names)
+                ),
+            )
+        )
     return visualization
 
-def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=True, show_bbox=True):
+
+def visualize_coco_annotations_pil(
+    image, annotations, coco, show_class_name=True, show_bbox=True
+):
     """
     Visualizes COCO mask annotations for a given image using PIL.
 
@@ -188,23 +230,25 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
     # Convert PIL image to RGBA format for transparency handling
     image = image.convert("RGBA")
     overlay = Image.new("RGBA", image.size, (255, 255, 255, 0))  # transparent overlay
-    
+
     colors = get_colors(len(coco.cats))
     colors_alpha = get_colors_alpha(colors)
     category_colors = get_category_colors(colors)
-    
+
     offset = 0 if 0 in coco.cats.keys() else 1
-    
+
     for ann in annotations:
         # Get mask
-        if 'segmentation' in ann:
-            if isinstance(ann['segmentation'], list):
+        if "segmentation" in ann:
+            if isinstance(ann["segmentation"], list):
                 # Polygon format
-                rle = maskUtils.frPyObjects(ann['segmentation'], image.height, image.width)
+                rle = maskUtils.frPyObjects(
+                    ann["segmentation"], image.height, image.width
+                )
                 mask = maskUtils.decode(rle)
             else:
                 # RLE format
-                mask = maskUtils.decode(ann['segmentation'])
+                mask = maskUtils.decode(ann["segmentation"])
         else:
             print("No segmentation found in annotation")
             continue
@@ -212,31 +256,37 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
         mask = np.squeeze(mask)
         # import pdb;pdb.set_trace()
         # Draw mask with transparency
-        color = colors_alpha[ann["category_id"]-offset] #np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
-        mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode='L')
+        color = colors_alpha[
+            ann["category_id"] - offset
+        ]  # np.random.randint(0, 255, 3).tolist() + [128]  # Random color with 50% transparency
+        mask_img = Image.fromarray((mask * 255).astype(np.uint8), mode="L")
         colored_mask = Image.new("RGBA", image.size, tuple(color))
         overlay.paste(colored_mask, (0, 0), mask_img)
 
         # Draw contours
     for ann in annotations:
         # Get mask
-        if 'segmentation' in ann:
-            if isinstance(ann['segmentation'], list):
+        if "segmentation" in ann:
+            if isinstance(ann["segmentation"], list):
                 # Polygon format
-                rle = maskUtils.frPyObjects(ann['segmentation'], image.height, image.width)
+                rle = maskUtils.frPyObjects(
+                    ann["segmentation"], image.height, image.width
+                )
                 mask = maskUtils.decode(rle)
             else:
                 # RLE format
-                mask = maskUtils.decode(ann['segmentation'])
+                mask = maskUtils.decode(ann["segmentation"])
         else:
             print("No segmentation found in annotation")
             continue
 
         mask = np.squeeze(mask)
-        
-        color = category_colors[ann["category_id"]-offset] 
-        
-        contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+        color = category_colors[ann["category_id"] - offset]
+
+        contours, _ = cv2.findContours(
+            mask.astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+        )
         draw = ImageDraw.Draw(overlay)
         for contour in contours:
             contour = contour[:, 0, :]  # Reshape for plotting
@@ -244,20 +294,23 @@ def visualize_coco_annotations_pil(image, annotations, coco, show_class_name=Tru
             draw.line(contour_points + [contour_points[0]], fill=tuple(color), width=2)
 
         # Show bounding box if requested
-        if show_bbox and 'bbox' in ann:
-            bbox = ann['bbox']
+        if show_bbox and "bbox" in ann:
+            bbox = ann["bbox"]
             x, y, w, h = bbox
             draw.rectangle([(x, y), (x + w, y + h)], outline=tuple(color), width=2)
 
         # Show class name if requested
         if show_class_name:
-            cat_id = ann['category_id']
-            category = coco.loadCats(cat_id)[0]['name']
+            cat_id = ann["category_id"]
+            category = coco.loadCats(cat_id)[0]["name"]
             draw.text((x, y), category, fill=tuple(color))
 
     # Composite overlay with the original image
     annotated_image = Image.alpha_composite(image, overlay)
-    return annotated_image.convert("RGB")  # Convert back to RGB for displaying without transparency issues
+    return annotated_image.convert(
+        "RGB"
+    )  # Convert back to RGB for displaying without transparency issues
+
 
 def visualize_multiclass(image, mask, label_dict):
     """

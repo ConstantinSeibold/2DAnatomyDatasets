@@ -8,16 +8,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Constants
-DATASET_URL = 'http://www.duke.edu/~sf59/Datasets/2015_BOE_Chiu2.zip'
+DATASET_URL = "http://www.duke.edu/~sf59/Datasets/2015_BOE_Chiu2.zip"
 DATASET_ROOT_PATH = os.getenv("DUKE_ROOT_PATH")
-DATASET_FOLDER = '2015_BOE_Chiu2'
+DATASET_FOLDER = "2015_BOE_Chiu2"
 ZIP_PATH = f"{DATASET_FOLDER}.zip"
+
 
 def download_and_extract_dataset():
     """Downloads and extracts the dataset if it does not already exist.
-    
+
     The dataset is downloaded as a zip file and extracted into the directory
-    specified by DATASET_ROOT_PATH. If the dataset zip file or the extracted 
+    specified by DATASET_ROOT_PATH. If the dataset zip file or the extracted
     folder already exists, it skips the relevant steps.
     """
     if DATASET_ROOT_PATH is None:
@@ -41,7 +42,7 @@ def download_and_extract_dataset():
     if not os.path.exists(dataset_extract_path):
         logger.info("Extracting dataset...")
         try:
-            with zipfile.ZipFile(ZIP_PATH, 'r') as zip_ref:
+            with zipfile.ZipFile(ZIP_PATH, "r") as zip_ref:
                 zip_ref.extractall(DATASET_ROOT_PATH)
             logger.info("Extraction complete.")
         except zipfile.BadZipFile:
@@ -53,6 +54,7 @@ def download_and_extract_dataset():
                 logger.info("Zip file removed after extraction.")
     else:
         logger.info("Dataset folder already exists.")
+
 
 if __name__ == "__main__":
     download_and_extract_dataset()

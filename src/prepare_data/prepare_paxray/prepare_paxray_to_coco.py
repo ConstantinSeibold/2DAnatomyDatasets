@@ -9,6 +9,7 @@ from pycocotools import mask
 from copy import deepcopy
 from tqdm import tqdm
 
+
 def binary_mask_to_rle(binary_mask: np.array) -> dict:
     """
     Convert binary mask to COCO RLE format.
@@ -20,9 +21,10 @@ def binary_mask_to_rle(binary_mask: np.array) -> dict:
         dict: COCO RLE encoded mask.
     """
     mask_encoded = mask.encode(np.asfortranarray(binary_mask.astype(np.uint8)))
-    mask_encoded['counts'] = mask_encoded['counts'].decode('utf-8')
+    mask_encoded["counts"] = mask_encoded["counts"].decode("utf-8")
     return mask_encoded
-                      
+
+
 def rle_to_binary_mask(rle_mask: dict) -> np.array:
     """
     Convert COCO RLE encoded mask to binary mask.
@@ -34,10 +36,11 @@ def rle_to_binary_mask(rle_mask: dict) -> np.array:
         np.array: Binary mask array.
     """
     rle_mask_copy = deepcopy(rle_mask)
-    rle_mask_copy['counts'] = rle_mask_copy['counts'].encode('utf-8')
+    rle_mask_copy["counts"] = rle_mask_copy["counts"].encode("utf-8")
     binary_mask = mask.decode(rle_mask_copy)
     return binary_mask
-  
+
+
 def mask_to_annotation(mask: np.array, base_ann_id: int = 1, img_id: int = 1) -> list:
     """
     Convert mask array to COCO annotation format.
@@ -57,16 +60,17 @@ def mask_to_annotation(mask: np.array, base_ann_id: int = 1, img_id: int = 1) ->
         binary_mask = mask[i]
         mask_encoded = binary_mask_to_rle(binary_mask)
         annotation = {
-            'id': base_ann_id + i,
-            'image_id': img_id,
-            'category_id': i + 1,
-            'segmentation': mask_encoded,
-            'area': int(np.sum(binary_mask)),
-            'bbox': toBox(mask_encoded).tolist(),
-            'iscrowd': 0  # Set to 1 if the mask represents a crowd region
+            "id": base_ann_id + i,
+            "image_id": img_id,
+            "category_id": i + 1,
+            "segmentation": mask_encoded,
+            "area": int(np.sum(binary_mask)),
+            "bbox": toBox(mask_encoded).tolist(),
+            "iscrowd": 0,  # Set to 1 if the mask represents a crowd region
         }
         annotations.append(annotation)
     return annotations
+
 
 def toBox(binary_mask: np.array) -> list:
     """
@@ -79,6 +83,7 @@ def toBox(binary_mask: np.array) -> list:
         list: Bounding box coordinates.
     """
     return mask.toBbox(binary_mask)
+
 
 def create_category_annotation(category_dict):
     """
@@ -93,14 +98,11 @@ def create_category_annotation(category_dict):
     category_list = []
 
     for key, value in category_dict.items():
-        category = {
-            "supercategory": key,
-            "id": value,
-            "name": key
-        }
+        category = {"supercategory": key, "id": value, "name": key}
         category_list.append(category)
 
     return category_list
+
 
 def get_coco_json_format():
     """
@@ -115,10 +117,11 @@ def get_coco_json_format():
         "licenses": [],
         "images": [],
         "categories": [],
-        "annotations": []
+        "annotations": [],
     }
 
     return coco_format
+
 
 def get_image_info(path, id):
     image_info = {}
@@ -129,9 +132,13 @@ def get_image_info(path, id):
     image_info["file_name"] = path.split("/")[-1]
     return image_info
 
+
 def process_images(images, label_dict):
     train_json = get_coco_json_format()
-    train_json["categories"] = [{"id": int(key)+1, "supercategory": "", "name":label_dict[key]} for key in label_dict.keys()]
+    train_json["categories"] = [
+        {"id": int(key) + 1, "supercategory": "", "name": label_dict[key]}
+        for key in label_dict.keys()
+    ]
     annotation_id = 1
     for i, image in enumerate(tqdm(images)):
         train_json["images"] += [get_image_info(image["image"], i)]
@@ -141,29 +148,27 @@ def process_images(images, label_dict):
         annotation_id += len(annotations)
     return train_json
 
+
 def save_json(coco_dict, path, split):
-    with open(os.path.join(path, split+".json"), "w") as f:
+    with open(os.path.join(path, split + ".json"), "w") as f:
         json.dump(coco_dict, f)
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     jsrt_json_path = os.getenv("PAXRAY_JSON_PATH")
     jsrt_coco_path = os.getenv("PAXRAY_COCO_PATH")
-        
+
     jsons = json.load(open(jsrt_json_path))
-    
+
     label_dict = jsons["label_dict"]
-    
+
     os.makedirs(jsrt_coco_path, exist_ok=True)
-    
+
     train_json = process_images(jsons["train"], label_dict)
-    save_json(train_json,jsrt_coco_path,"paxray_train")
-    
+    save_json(train_json, jsrt_coco_path, "paxray_train")
+
     val_json = process_images(jsons["val"], label_dict)
-    save_json(val_json,jsrt_coco_path,"paxray_val")
-    
+    save_json(val_json, jsrt_coco_path, "paxray_val")
+
     test_json = process_images(jsons["test"], label_dict)
-    save_json(test_json,jsrt_coco_path,"paxray_test")
-    
-    
-    
-    
+    save_json(test_json, jsrt_coco_path, "paxray_test")
