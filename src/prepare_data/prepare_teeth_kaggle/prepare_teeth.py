@@ -1,9 +1,18 @@
 import os
+import sys
 import json
 import random
 from pathlib import Path
 from tqdm import tqdm
 import shutil
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+)
+from anatomy_datasets import add_metadata_to_splits_json
+
+
+SEED = 42
 
 
 def convert_to_coco(ann_dir, img_dir, output_file):
@@ -101,7 +110,7 @@ def convert_to_coco(ann_dir, img_dir, output_file):
 
 
 def create_splits(coco_data, output_dir, splits=(0.7, 0.1, 0.2)):
-    random.seed(42)  # For reproducibility
+    random.seed(SEED)  # For reproducibility
     images = coco_data["images"]
     random.shuffle(images)
 
@@ -186,3 +195,23 @@ if __name__ == "__main__":
 
     shutil.rmtree(os.path.join(teeth_root, "Teeth Segmentation JSON"))
     shutil.rmtree(os.path.join(teeth_root, "Teeth Segmentation PNG"))
+
+    img_dir = os.path.join(teeth_root, "img")
+    for split_name in ("train", "val", "test"):
+        split_path = os.path.join(teeth_root, f"{split_name}.json")
+        add_metadata_to_splits_json(
+            json_path=split_path,
+            root_dir=teeth_root,
+            dataset_name="Teeth",
+            seed=SEED,
+            coco_image_dir=img_dir,
+        )
+        agnostic_path = os.path.join(teeth_root, f"{split_name}_classagnostic.json")
+        add_metadata_to_splits_json(
+            json_path=agnostic_path,
+            root_dir=teeth_root,
+            dataset_name="Teeth",
+            seed=SEED,
+            coco_image_dir=img_dir,
+            compute_stats=False,  # same images as the non-agnostic file
+        )

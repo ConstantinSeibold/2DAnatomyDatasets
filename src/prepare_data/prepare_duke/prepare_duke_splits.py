@@ -1,7 +1,16 @@
 import os
+import sys
 import json
 import random
 from sklearn.model_selection import train_test_split
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+)
+from anatomy_datasets import add_metadata_to_splits_json
+
+
+SEED = 42
 
 # Duke dataset label dictionary for OCT layers
 label_dictionary = {
@@ -52,7 +61,7 @@ def create_duke_dataset_splits(
         raise ValueError("Number of images and labels do not match!")
 
     train_images_split, test_images, train_labels_split, test_labels = train_test_split(
-        image_files, label_files, test_size=validation_split, random_state=42
+        image_files, label_files, test_size=validation_split, random_state=SEED
     )
 
     # Split into train and validation sets
@@ -61,7 +70,7 @@ def create_duke_dataset_splits(
             train_images_split,
             train_labels_split,
             test_size=validation_split,
-            random_state=42,
+            random_state=SEED,
         )
     )
 
@@ -102,11 +111,17 @@ def create_duke_dataset_splits(
 if __name__ == "__main__":
 
     dataset_folder = os.getenv("DUKE_ROOT_PATH")
+    output_file = os.path.join(dataset_folder, "duke_splits.json")
 
-    # Example usage
     create_duke_dataset_splits(
         root_folder=dataset_folder,
         dataset_name="Duke_OCT",
         validation_split=0.2,
-        output_file=os.path.join(dataset_folder, "duke_splits.json"),
+        output_file=output_file,
+    )
+    add_metadata_to_splits_json(
+        json_path=output_file,
+        root_dir=dataset_folder,
+        dataset_name="DUKE",
+        seed=SEED,
     )

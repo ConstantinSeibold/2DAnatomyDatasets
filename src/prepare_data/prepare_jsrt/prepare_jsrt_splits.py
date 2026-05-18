@@ -1,8 +1,14 @@
 import os
+import sys
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
 import json
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+)
+from anatomy_datasets import add_metadata_to_splits_json
 
 if __name__ == "__main__":
 
@@ -71,3 +77,13 @@ if __name__ == "__main__":
 
     with open(jsrt_json_path, "w") as f:
         json.dump(out, f)
+
+    # JSRT image paths in the JSON are relative to JSRT_ROOT_PATH (the
+    # parent of JSRT_IMG_PATH); stats compute would need that root. Fall
+    # back to the dirname of the JSON itself, which is the canonical root.
+    add_metadata_to_splits_json(
+        json_path=jsrt_json_path,
+        root_dir=os.path.dirname(jsrt_json_path),
+        dataset_name="JSRT",
+        seed=None,
+    )

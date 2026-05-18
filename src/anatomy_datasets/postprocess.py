@@ -125,7 +125,7 @@ def _print_citation_banner(info) -> None:
 
     Surfaced at the tail of every ``prepare_<name>_splits.py`` run so users
     cannot miss attribution requirements. Full BibTeX entries are mirrored
-    in ``docs/CITATIONS.bib``.
+    in the registry under ``DatasetInfo.bibtex``.
     """
     bar = "=" * 72
     lines = [
@@ -142,7 +142,7 @@ def _print_citation_banner(info) -> None:
     lines.append("If you use this dataset, please cite:")
     lines.append(f"  {info.citation}")
     lines.append("")
-    lines.append("BibTeX (also in docs/CITATIONS.bib):")
+    lines.append("BibTeX:")
     for raw in info.bibtex.splitlines():
         lines.append(f"  {raw}")
     lines.append(bar)

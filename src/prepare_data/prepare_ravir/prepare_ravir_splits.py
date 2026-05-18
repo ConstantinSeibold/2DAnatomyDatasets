@@ -1,7 +1,16 @@
 import os
+import sys
 import json
 import random
 from sklearn.model_selection import train_test_split
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+)
+from anatomy_datasets import add_metadata_to_splits_json
+
+
+SEED = 42
 
 
 def create_dataset_splits(
@@ -39,7 +48,7 @@ def create_dataset_splits(
     # Split into train and validation sets
     train_images_split, val_images_split, train_masks_split, val_masks_split = (
         train_test_split(
-            train_images, train_masks, test_size=validation_split, random_state=42
+            train_images, train_masks, test_size=validation_split, random_state=SEED
         )
     )
 
@@ -100,10 +109,17 @@ def create_dataset_splits(
 
 if __name__ == "__main__":
     root_folder = os.getenv("RAVIR_ROOT_FOLDER")
+    output_file = os.path.join(root_folder, "ravir_splits.json")
     create_dataset_splits(
         root_folder=root_folder,
         dataset_name="RAVIR",
         label_dictionary={0: "background", 1: "arteries", 2: "veins"},
         validation_split=0.2,
-        output_file=os.path.join(root_folder, "ravir_splits.json"),
+        output_file=output_file,
+    )
+    add_metadata_to_splits_json(
+        json_path=output_file,
+        root_dir=root_folder,
+        dataset_name="RAVIR",
+        seed=SEED,
     )
