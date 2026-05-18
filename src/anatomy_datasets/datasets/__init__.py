@@ -12,6 +12,7 @@ from .duke import DUKE_Dataset
 from .jsrt import JSRT_binary_Dataset, JSRT_detection_Dataset
 from .jump_broadcast import JumpBroadcast_Dataset
 from .medaka_heart import MedakaHeart_Dataset
+from .hrf import HRF_Dataset
 from .montgomery import Montgomery_Dataset
 from .paxray import (
     PAXRay4_binary_Dataset,
@@ -33,6 +34,7 @@ __all__ = [
     "JSRT_detection_Dataset",
     "JumpBroadcast_Dataset",
     "MedakaHeart_Dataset",
+    "HRF_Dataset",
     "Montgomery_Dataset",
     "PAXRay4_binary_Dataset",
     "PAXRay4_detection_Dataset",
