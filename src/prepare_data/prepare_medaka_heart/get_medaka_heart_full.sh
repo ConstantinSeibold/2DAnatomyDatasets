@@ -1,0 +1,4 @@
+export MEDAKA_HEART_ROOT_FOLDER="./datasets/medaka_heart/"
+python src/prepare_data/prepare_medaka_heart/download_medaka_heart.py
+python src/prepare_data/prepare_medaka_heart/prepare_medaka_heart_labels.py
+python src/prepare_data/prepare_medaka_heart/prepare_medaka_heart_splits.py

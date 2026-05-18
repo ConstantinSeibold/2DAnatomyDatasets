@@ -1,0 +1,4 @@
+export JUMP_BROADCAST_ROOT_FOLDER="./datasets/jump_broadcast/"
+python src/prepare_data/prepare_jump_broadcast/download_jump_broadcast.py
+python src/prepare_data/prepare_jump_broadcast/prepare_jump_broadcast_labels.py
+python src/prepare_data/prepare_jump_broadcast/prepare_jump_broadcast_splits.py
