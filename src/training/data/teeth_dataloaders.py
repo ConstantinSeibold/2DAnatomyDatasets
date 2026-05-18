@@ -1,3 +1,3 @@
-from .base_dataloaders import BaseDetectionDataset
+"""Backcompat shim. Real implementation lives in `anatomy_datasets.datasets.teeth`."""
 
-Teeth_Dataset = BaseDetectionDataset
+from anatomy_datasets.datasets.teeth import Teeth_Dataset  # noqa: F401

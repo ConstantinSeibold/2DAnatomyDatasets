@@ -1,3 +1,3 @@
-from .base_dataloaders import BaseMultiLabelDataset, BaseDetectionDataset
+"""Backcompat shim. Real implementation lives in `anatomy_datasets.datasets.bs80k`."""
 
-BS80KAnatomy_detection_Dataset = BaseDetectionDataset
+from anatomy_datasets.datasets.bs80k import BS80KAnatomy_detection_Dataset  # noqa: F401

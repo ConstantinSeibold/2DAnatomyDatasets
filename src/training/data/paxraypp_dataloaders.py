@@ -1,4 +1,3 @@
-from .base_dataloaders import BaseMultiLabelDataset, BaseDetectionDataset
+"""Backcompat shim. Real implementation lives in `anatomy_datasets.datasets.paxraypp`."""
 
-PAXRayPP_binary_Dataset = BaseMultiLabelDataset
-PAXRayPP_Instance_Dataset = BaseDetectionDataset
+from anatomy_datasets.datasets.paxraypp import PAXRayPP_binary_Dataset, PAXRayPP_Instance_Dataset  # noqa: F401

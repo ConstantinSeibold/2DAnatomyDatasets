@@ -1,12 +1,10 @@
-from .bs80k_dataloaders import BS80KAnatomy_detection_Dataset
-from .duke_dataloaders import DUKE_Dataset
-from .jsrt_dataloaders import JSRT_binary_Dataset, JSRT_detection_Dataset
-from .paxray_dataloaders import (
-    PAXRay4_binary_Dataset,
-    PAXRay4_detection_Dataset,
-    PAXRay166_binary_Dataset,
-    PAXRay166_detection_Dataset,
-)
-from .paxraypp_dataloaders import PAXRayPP_binary_Dataset, PAXRayPP_Instance_Dataset
-from .ravir_dataloaders import RAVIR_Dataset
-from .teeth_dataloaders import Teeth_Dataset
+"""Backcompat shim. Real implementations live in ``anatomy_datasets``.
+
+Existing code that does ``from data import DRIVE_Dataset`` (when
+``src/training`` is on ``sys.path``) continues to work because we
+re-export the entire ``anatomy_datasets.datasets`` surface here. New
+code should ``import anatomy_datasets`` instead.
+"""
+
+from anatomy_datasets.datasets import *  # noqa: F401,F403
+from anatomy_datasets.datasets import __all__  # noqa: F401

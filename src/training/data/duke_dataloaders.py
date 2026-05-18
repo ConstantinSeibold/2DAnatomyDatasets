@@ -1,3 +1,3 @@
-from .base_dataloaders import BaseMultiClassDataset
+"""Backcompat shim. Real implementation lives in `anatomy_datasets.datasets.duke`."""
 
-DUKE_Dataset = BaseMultiClassDataset
+from anatomy_datasets.datasets.duke import DUKE_Dataset  # noqa: F401
