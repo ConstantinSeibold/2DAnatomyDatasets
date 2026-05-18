@@ -1,0 +1,3 @@
+from anatomy_datasets.base import BaseMultiClassDataset
+
+Montgomery_Dataset = BaseMultiClassDataset

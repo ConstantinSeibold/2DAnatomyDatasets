@@ -1,0 +1,3 @@
+from anatomy_datasets.base import BaseDetectionDataset
+
+BS80KAnatomy_detection_Dataset = BaseDetectionDataset

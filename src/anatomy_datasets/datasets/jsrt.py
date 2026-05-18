@@ -1,0 +1,4 @@
+from anatomy_datasets.base import BaseDetectionDataset, BaseMultiLabelDataset
+
+JSRT_binary_Dataset = BaseMultiLabelDataset
+JSRT_detection_Dataset = BaseDetectionDataset

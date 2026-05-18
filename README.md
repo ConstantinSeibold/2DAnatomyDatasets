@@ -17,6 +17,14 @@ This repository supports the following publicly available datasets:
 | **DUKE**        | Optical Coherence Tomography  | 110 | OCT dataset for retinal layer segmentation.                                                     | [Link](https://people.duke.edu/~sf59/Chiu_BOE_2014_dataset.htm)                       |
 | **RAVIR**       | Infrared Reflectance Imaging   | 23 |Dataset for retinal vessel segmentation from infrared images.                                    | [Link](https://ravir.grand-challenge.org/data/)                       |
 | **Teeth**       | Panoramic X-Ray     |     598       | Dataset of dental X-rays for teeth segmentation.                                                 | [Link](https://www.kaggle.com/datasets/humansintheloop/teeth-segmentation-on-dental-x-ray-images/discussion?sort=published)                       |
+| **DRIVE**       | Color Fundus     |     40        | Retinal vessel segmentation dataset (20 train / 20 test).                                        | [Link](https://www.isi.uu.nl/Research/Databases/DRIVE/)                       |
+| **STARE**       | Color Fundus     |     20        | Retinal vessel segmentation dataset with two manual annotators.                                  | [Link](https://cecas.clemson.edu/~ahoover/stare/)                       |
+| **CHASE_DB1**   | Color Fundus     |     28        | Retinal vessel segmentation dataset from school-age children.                                    | [Link](https://researchdata.kingston.ac.uk/96/)                       |
+| **Jump-Broadcast** | RGB Video (broadcast) | 1,809 | Cropped body-part segmentation masks for triple/high/long jump athletes (15 classes). | [Link](https://www.uni-augsburg.de/en/fakultaet/fai/informatik/prof/mmc/research/datensatze/) |
+| **MedakaHeart** | Brightfield Microscopy (Medaka hatchling) | 805 | Ventral-view heart segmentation (bulbus / atrium / heart) — 565 train + two held-out specimens (N0030: 75, R0004: 165). GPL-3.0. | [Link](https://osf.io/uyk79/) |
+| **Montgomery**  | Chest X-Ray      |    138        | NLM Montgomery County chest X-rays with bilateral lung masks (left / right lung as separate classes). Random 80/10/10 split. | [Link](https://lhncbc.nlm.nih.gov/LHC-publications/pubs/TuberculosisChestXrayImageDataSets.html) |
+
+> For **license, citation, source URL, BibTeX, and split-seed information per dataset**, see [`docs/DATASETS.md`](docs/DATASETS.md) and the aggregate [`docs/CITATIONS.bib`](docs/CITATIONS.bib). Both are auto-generated from `src/anatomy_datasets/registry.py` — regenerate with `python scripts/gen_dataset_docs.py` whenever the registry changes. The same metadata (including BibTeX) is also embedded in each dataset's splits JSON so it can be queried programmatically.
 
 ---
 
@@ -35,7 +43,13 @@ src/
 │   ├── prepare_paxraypp/               # Scripts for processing the PAX-Ray++ dataset
 │   ├── prepare_duke/                    # Scripts for processing the DUKE dataset
 │   ├── prepare_ravir/                   # Scripts for processing the RAVIR dataset
-│   └── prepare_teeth_kaggle/                   # Scripts for processing the Teeth dataset
+│   ├── prepare_teeth_kaggle/                   # Scripts for processing the Teeth dataset
+│   ├── prepare_drive/                   # Scripts for processing the DRIVE retinal vessel dataset
+│   ├── prepare_stare/                   # Scripts for processing the STARE retinal vessel dataset
+│   ├── prepare_chasedb1/                # Scripts for processing the CHASE_DB1 retinal vessel dataset
+│   ├── prepare_jump_broadcast/          # Scripts for processing the Jump-Broadcast dataset
+│   ├── prepare_medaka_heart/            # Scripts for processing the Medaka hatchling heart dataset
+│   └── prepare_montgomery/              # Scripts for processing the NLM Montgomery lung dataset
 │
 ├── visualization/
 │   └── visualize.py             # Utility scripts for visualizing dataset samples
@@ -64,6 +78,16 @@ Use the scripts in `src/visualization` to visualize the datasets, ground-truth l
 ### 🚀 **Training Pipeline Integration**
 Prepared datasets can be plugged directly into any PyTorch-based segmentation model for training and evaluation.
 
+### 🔌 **Use with mmseg / mmdet / SMP / HuggingFace**
+After `pip install -e .[<extra>]`, each dataset is consumable through the major segmentation ecosystems. Per-framework one-pagers:
+
+- [`docs/QUICKSTART_SMP.md`](docs/QUICKSTART_SMP.md) — segmentation_models_pytorch (no exporter, no adapter).
+- [`docs/QUICKSTART_MMSEG.md`](docs/QUICKSTART_MMSEG.md) — runtime adapter + per-channel exporter for multilabel.
+- [`docs/QUICKSTART_MMDET.md`](docs/QUICKSTART_MMDET.md) — monolithic COCO for small datasets, sharded COCO for PAXRay-scale.
+- [`docs/QUICKSTART_HF.md`](docs/QUICKSTART_HF.md) — HuggingFace `datasets.DatasetDict` + `transformers.AutoImageProcessor`.
+
+See [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) for which datasets work with which framework, and [`docs/SCHEMA.md`](docs/SCHEMA.md) for the splits-JSON + sharded-COCO format specs. Copy-paste training configs live under [`configs/`](configs/).
+
 ---
 
 ## 🚀 **Getting Started**
@@ -75,8 +99,16 @@ cd 2D-Anatomy-Segmentation-Datasets
 ```
 
 ### 2️⃣ Install Dependencies  
+Dependencies are declared in `pyproject.toml` (no `requirements.txt`):
 ```bash
-pip install -r requirements.txt
+# Core only (dataset prep + raw PyTorch dataloaders):
+pip install -e .
+# Or pick an ecosystem extra:
+pip install -e '.[smp]'      # segmentation_models_pytorch
+pip install -e '.[mmseg]'    # mmsegmentation adapter + exporter
+pip install -e '.[mmdet]'    # mmdetection adapter + exporter
+pip install -e '.[hf]'       # HuggingFace datasets
+pip install -e '.[all]'      # everything
 ```
 
 ### 3️⃣ Prepare the Data  
@@ -103,7 +135,20 @@ Contributions are welcome! If you'd like to add support for more datasets, impro
 ---
 
 ## 📜 **License**
-This project is licensed under the [MIT License](LICENSE).  
+This project (scripts, dataloaders, docs) is licensed under the [MIT License](LICENSE). Each upstream dataset retains its own license — see [`docs/DATASETS.md`](docs/DATASETS.md) for the per-dataset license column and [`docs/CITATIONS.bib`](docs/CITATIONS.bib) for full BibTeX. The registry uses `license="unknown"` rather than guessing; check the source before commercial use.
+
+## 📚 **Citing the datasets**
+If you use any dataset prepared by this repo in published work, **cite the upstream paper**. Sources:
+
+- Per-dataset license, source URL, paper DOI, and BibTeX: [`docs/DATASETS.md`](docs/DATASETS.md)
+- Aggregate BibTeX file ready to drop into your reference manager: [`docs/CITATIONS.bib`](docs/CITATIONS.bib)
+- Programmatic access from Python:
+  ```python
+  from anatomy_datasets import get_dataset_info
+  info = get_dataset_info("DRIVE")
+  print(info.citation, info.bibtex, info.license, info.source_url)
+  ```
+- Embedded inside every prepared splits JSON under the `citation` / `bibtex` keys, and printed by every `prepare_<name>_splits.py` run.
 
 ---
 

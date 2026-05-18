@@ -1,0 +1,4 @@
+from anatomy_datasets.base import BaseDetectionDataset, BaseMultiLabelDataset
+
+PAXRayPP_binary_Dataset = BaseMultiLabelDataset
+PAXRayPP_Instance_Dataset = BaseDetectionDataset
