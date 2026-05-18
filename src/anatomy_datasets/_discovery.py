@@ -25,6 +25,7 @@ from anatomy_datasets.datasets import (
     DUKE_Dataset,
     JSRT_binary_Dataset,
     JSRT_detection_Dataset,
+    FIVES_Dataset,
     HRF_Dataset,
     JumpBroadcast_Dataset,
     MedakaHeart_Dataset,
@@ -97,6 +98,11 @@ DISCOVERY: dict[str, DiscoveryEntry] = {
         cls=HRF_Dataset, env_var="HRF_ROOT_FOLDER",
         default_json_name="hrf_splits.json", task="segmentation",
         registry_name="HRF",
+    ),
+    "FIVES": DiscoveryEntry(
+        cls=FIVES_Dataset, env_var="FIVES_ROOT_FOLDER",
+        default_json_name="fives_splits.json", task="segmentation",
+        registry_name="FIVES",
     ),
     "JSRT": DiscoveryEntry(
         cls=JSRT_binary_Dataset, env_var="JSRT_ROOT_PATH",

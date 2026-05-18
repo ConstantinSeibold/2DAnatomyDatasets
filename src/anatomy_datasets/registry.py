@@ -309,6 +309,38 @@ DATASET_REGISTRY: dict[str, DatasetInfo] = {
             "so we only ship the download script, never the data."
         ),
     ),
+    "FIVES": DatasetInfo(
+        name="FIVES",
+        modality="fundus",
+        task="multiclass_segmentation",
+        license="CC-BY-4.0",
+        license_url="https://creativecommons.org/licenses/by/4.0/",
+        source_url="https://figshare.com/articles/figure/FIVES_A_Fundus_Image_Dataset_for_AI-based_Vessel_Segmentation/19688169",
+        citation="Jin et al., FIVES: A Fundus Image Dataset for AI-based Vessel Segmentation, Scientific Data 9, 475 (2022).",
+        paper_url="https://doi.org/10.1038/s41597-022-01564-3",
+        bibtex=r"""@article{jin2022fives,
+    title   = {{FIVES}: A Fundus Image Dataset for Artificial Intelligence based Vessel Segmentation},
+    author  = {Jin, Kai and Huang, Xingru and Zhou, Jingxin and Li, Yunxiang and Yan, Yan and Sun, Yibao and Zhang, Qianni and Wang, Yaqi and Ye, Juan},
+    journal = {Scientific Data},
+    volume  = {9},
+    number  = {1},
+    pages   = {475},
+    year    = {2022},
+    doi     = {10.1038/s41597-022-01564-3},
+}""",
+        notes=(
+            "800 high-resolution color fundus images (600 train / 200 test "
+            "official split) balanced across Normal / Age-related macular "
+            "degeneration / Diabetic retinopathy / Glaucoma. Binary vessel "
+            "annotations curated via expert crowdsourcing. We keep the "
+            "upstream train/test partition and carve a 80/20 train/val out of "
+            "the train split with seed=42 stratified on the disease flag. "
+            "Upstream ships as a single ~1.76 GB RAR5 archive on Figshare; "
+            "extraction requires `unar` (`brew install unar` on macOS) or "
+            "`unrar`. The default macOS `7z` from Homebrew p7zip does not "
+            "support RAR5 and will fail."
+        ),
+    ),
     "HRF": DatasetInfo(
         name="HRF",
         modality="fundus",
