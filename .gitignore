@@ -1,5 +1,8 @@
 */__pycache__
 *.pyc
+build/
+dist/
+*.egg-info/
 /tests
 *.zip
 /datasets
@@ -7,3 +10,8 @@ __MACOSX
 .DS_Store
 *.pth
 events.out.tfevents.*
+skills-lock.json
+.agents
+.claude
+CLAUDE.md
+verify_visually/

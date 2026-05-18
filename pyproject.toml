@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anatomy-datasets"
+version = "0.1.0"
+description = "Dataset preparation, dataloaders, and ecosystem bridges for 2D anatomical segmentation."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Constantin Seibold", email = "constantinseibold@gmail.com" }]
+maintainers = [{ name = "Constantin Seibold", email = "constantinseibold@gmail.com" }]
+keywords = ["medical-imaging", "segmentation", "datasets", "pytorch", "anatomy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+dependencies = [
+    "albumentations>=1.4",
+    "numpy>=1.24",
+    "pillow>=10.0",
+    "scikit-learn>=1.0",
+    "scikit-image>=0.20",
+    "torch>=2.0",
+    "torchvision>=0.15",
+    "tqdm>=4.0",
+    "pycocotools>=2.0",
+]
+
+[project.optional-dependencies]
+mmseg = ["mmcv>=2.0", "mmsegmentation>=1.0"]
+mmdet = ["mmcv>=2.0", "mmdet>=3.0"]
+smp = ["segmentation_models_pytorch>=0.3"]
+hf = ["datasets>=2.14", "pyarrow>=14.0"]
+all = [
+    "mmcv>=2.0",
+    "mmsegmentation>=1.0",
+    "mmdet>=3.0",
+    "segmentation_models_pytorch>=0.3",
+    "datasets>=2.14",
+    "pyarrow>=14.0",
+]
+
+[project.scripts]
+anatomy-datasets-postprocess = "anatomy_datasets.postprocess:_cli"
+
+[project.urls]
+Homepage = "https://github.com/ConstantinSeibold/2DAnatomyDatasets"
+Source = "https://github.com/ConstantinSeibold/2DAnatomyDatasets"
+Issues = "https://github.com/ConstantinSeibold/2DAnatomyDatasets/issues"
+Changelog = "https://github.com/ConstantinSeibold/2DAnatomyDatasets/blob/main/CHANGELOG.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["anatomy_datasets*"]

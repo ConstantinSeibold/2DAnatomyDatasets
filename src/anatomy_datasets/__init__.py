@@ -29,6 +29,8 @@ from __future__ import annotations
 import os
 from typing import Optional
 
+__version__ = "0.1.0"
+
 # --- Core utilities -----------------------------------------------------------
 from .registry import DATASET_REGISTRY, DatasetInfo, get_dataset_info
 from .stats import compute_image_stats
@@ -167,6 +169,7 @@ globals().update(_ALIASES)
 
 
 __all__ = [
+    "__version__",
     # core
     "DATASET_REGISTRY", "DatasetInfo", "get_dataset_info",
     "compute_image_stats", "add_metadata_to_splits_json",
