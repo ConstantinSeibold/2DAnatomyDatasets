@@ -19,6 +19,10 @@ Source-format handling
 - **Multilabel ``.npy`` mask stacks** (PAXRay, PAXRay++, BS80k): each
   non-empty channel becomes one COCO annotation with an RLE
   ``segmentation`` field. ``category_id`` = channel index.
+- **Multiclass PNG masks** (DRIVE, STARE, CHASE_DB1, RAVIR, ...): each
+  unique non-zero pixel value becomes one COCO annotation (semantic-
+  segmentation semantics — no connected-component splitting).
+  ``category_id`` = pixel value.
 - **Monolithic COCO** input (already-COCO datasets, e.g. Teeth output of
   ``prepare_teeth.py``): each split JSON gets metadata merged into its
   ``info`` block. Use ``anatomy_datasets.add_metadata_to_splits_json``
@@ -119,34 +123,54 @@ def _entry_to_coco_annotations(
         return [], base_ann_id
 
     target_path = os.path.join(root_dir, target)
-    if not target_path.endswith(".npy"):
-        raise NotImplementedError(
-            f"COCO exporter currently only supports multilabel .npy "
-            f"sources; got target={target_path!r}. Use the mmseg "
-            "exporter for single-channel PNG mask sources."
-        )
-
-    stack = np.load(target_path)
-    if stack.ndim != 3:
-        raise ValueError(
-            f"Expected mask stack [C,H,W], got shape {stack.shape}"
-        )
-
-    binary = stack > 0
     annotations = []
     ann_id = base_ann_id
-    for channel_idx in range(binary.shape[0]):
-        if channel_idx not in valid_cat_ids:
+
+    if target_path.endswith(".npy"):
+        stack = np.load(target_path)
+        if stack.ndim != 3:
+            raise ValueError(
+                f"Expected mask stack [C,H,W], got shape {stack.shape}"
+            )
+        binary = stack > 0
+        for channel_idx in range(binary.shape[0]):
+            if channel_idx not in valid_cat_ids:
+                continue
+            m = binary[channel_idx]
+            if not m.any():
+                continue
+            rle = binary_mask_to_rle(m)
+            annotations.append(
+                {
+                    "id": ann_id,
+                    "image_id": image_id,
+                    "category_id": int(channel_idx),
+                    "segmentation": rle,
+                    "area": int(m.sum()),
+                    "bbox": _rle_bbox(rle),
+                    "iscrowd": 0,
+                }
+            )
+            ann_id += 1
+        return annotations, ann_id
+
+    # Multiclass PNG path: one annotation per unique non-zero pixel value.
+    mask = np.array(Image.open(target_path).convert("L"))
+    for class_id in np.unique(mask):
+        cid = int(class_id)
+        if cid == 0:
             continue
-        m = binary[channel_idx]
+        if cid not in valid_cat_ids:
+            continue
+        m = (mask == class_id)
         if not m.any():
             continue
-        rle = binary_mask_to_rle(m)
+        rle = binary_mask_to_rle(m.astype(np.uint8))
         annotations.append(
             {
                 "id": ann_id,
                 "image_id": image_id,
-                "category_id": int(channel_idx),
+                "category_id": cid,
                 "segmentation": rle,
                 "area": int(m.sum()),
                 "bbox": _rle_bbox(rle),

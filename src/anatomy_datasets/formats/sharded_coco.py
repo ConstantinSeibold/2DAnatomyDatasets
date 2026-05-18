@@ -1,5 +1,14 @@
 """SA-1B-style per-image annotation shards with COCO-compatible RLE masks.
 
+Two writer entrypoints are provided:
+
+- ``write_sharded_coco(splits_json, ...)`` — multilabel ``.npy``-mask
+  source (PAXRay-style).
+- ``write_sharded_coco_from_coco({split: coco_json}, ...)`` — monolithic
+  per-split COCO JSON source (Teeth-style polygon annotations). Polygon
+  segmentations are converted to RLE; existing RLE annotations pass
+  through unchanged.
+
 Motivation
 ----------
 A single monolithic COCO JSON does not scale to PAXRay++ (14,754 images
@@ -69,6 +78,8 @@ import numpy as np
 from PIL import Image
 from pycocotools import mask as mask_utils
 from torch.utils.data import Dataset
+
+from anatomy_datasets.registry import get_dataset_info
 
 
 FORMAT_VERSION = "sharded_coco_v1"
@@ -310,6 +321,200 @@ def write_sharded_coco(
 
 
 # --------------------------------------------------------------------------- #
+# Writer: monolithic COCO -> sharded
+# --------------------------------------------------------------------------- #
+
+def _polygon_to_rle(segmentation, height: int, width: int) -> dict:
+    """Convert a COCO polygon `segmentation` (list of float lists or RLE dict)
+    into the same JSON-safe RLE dict that ``binary_mask_to_rle`` produces."""
+    if isinstance(segmentation, dict):
+        # Already RLE — could be compressed (str counts) or uncompressed (list).
+        counts = segmentation.get("counts")
+        if isinstance(counts, list):
+            rle = mask_utils.frPyObjects(segmentation, height, width)
+        else:
+            rle = dict(segmentation)
+        if isinstance(rle.get("counts"), bytes):
+            rle["counts"] = rle["counts"].decode("utf-8")
+        return rle
+    rles = mask_utils.frPyObjects(segmentation, height, width)
+    merged = mask_utils.merge(rles)
+    if isinstance(merged.get("counts"), bytes):
+        merged["counts"] = merged["counts"].decode("utf-8")
+    return merged
+
+
+def write_sharded_coco_from_coco(
+    coco_jsons: dict,
+    root_dir: str,
+    out_dir: str,
+    image_link_mode: str = "symlink",
+    dataset_name: Optional[str] = None,
+) -> dict:
+    """Convert per-split monolithic COCO JSONs into sharded per-image RLE annotations.
+
+    Parameters
+    ----------
+    coco_jsons : mapping of split name -> path to a COCO JSON for that split
+        (e.g. ``{"train": "...train.json", "val": "...val.json", "test": "...test.json"}``).
+        Any split absent from the mapping (or with a falsy path) is skipped.
+    root_dir : image root the COCO ``file_name`` fields are relative to.
+    out_dir : output directory; created if missing.
+    image_link_mode : ``"symlink"`` (default), ``"copy"``, or ``"reference"``.
+    dataset_name : optional name; used to look up registry metadata for the
+        ``index.json`` metadata block.
+
+    Polygon ``segmentation`` lists are converted to compressed RLE via
+    ``pycocotools.mask.frPyObjects`` + ``merge``. Existing RLE annotations
+    pass through (decoded ``counts`` -> str). Returns the persisted
+    ``index.json`` dict.
+    """
+    if image_link_mode not in ("symlink", "copy", "reference"):
+        raise ValueError(
+            f"image_link_mode must be symlink|copy|reference; got {image_link_mode!r}"
+        )
+
+    os.makedirs(out_dir, exist_ok=True)
+    ann_subdir = "annotations"
+    img_subdir = "images"
+    os.makedirs(os.path.join(out_dir, ann_subdir), exist_ok=True)
+    if image_link_mode != "reference":
+        os.makedirs(os.path.join(out_dir, img_subdir), exist_ok=True)
+
+    categories: Optional[list] = None
+    split_index: dict = {}
+    metadata_seed = None
+    metadata_version = None
+
+    for split_name, json_path in coco_jsons.items():
+        if not json_path:
+            continue
+        with open(json_path) as f:
+            coco = json.load(f)
+
+        split_cats = coco.get("categories", [])
+        if categories is None:
+            categories = [
+                {"id": int(c["id"]), "name": str(c.get("name", "")),
+                 "supercategory": str(c.get("supercategory", ""))}
+                for c in split_cats
+            ]
+            categories.sort(key=lambda c: c["id"])
+        else:
+            this_set = {(int(c["id"]), str(c.get("name", ""))) for c in split_cats}
+            base_set = {(c["id"], c["name"]) for c in categories}
+            if this_set != base_set:
+                raise ValueError(
+                    f"categories mismatch in {json_path!r}: expected {base_set}, got {this_set}"
+                )
+
+        info_block = coco.get("info", {}) or {}
+        metadata_seed = metadata_seed or info_block.get("seed")
+        metadata_version = metadata_version or info_block.get("version")
+
+        anns_by_image: dict = {}
+        for ann in coco.get("annotations", []):
+            anns_by_image.setdefault(ann["image_id"], []).append(ann)
+
+        ids_for_split: list = []
+        for image in coco.get("images", []):
+            image_id = str(image["id"])
+            ids_for_split.append(image_id)
+
+            image_rel = image["file_name"]
+            image_src = os.path.join(root_dir, image_rel)
+            width = int(image.get("width") or 0)
+            height = int(image.get("height") or 0)
+            if not width or not height:
+                width, height = _load_image_size(image_src)
+
+            ext = os.path.splitext(image_rel)[1] or ".png"
+            if image_link_mode == "reference":
+                file_name = image_rel
+            else:
+                file_name = os.path.join(img_subdir, f"{image_id}{ext}")
+                _link_image(
+                    image_src, os.path.join(out_dir, file_name), image_link_mode
+                )
+
+            shard_anns = []
+            for ann in anns_by_image.get(image["id"], []):
+                rle = _polygon_to_rle(ann["segmentation"], height, width)
+                bbox = ann.get("bbox") or _rle_to_bbox(rle)
+                area = ann.get("area")
+                if area is None:
+                    area = int(mask_utils.area(
+                        {**rle, "counts": rle["counts"].encode("utf-8")}
+                        if isinstance(rle.get("counts"), str) else rle
+                    ))
+                shard_anns.append(
+                    {
+                        "id": f"{image_id}_{ann.get('id', len(shard_anns))}",
+                        "category_id": int(ann["category_id"]),
+                        "segmentation": rle,
+                        "bbox": list(bbox),
+                        "area": int(area),
+                        "iscrowd": int(ann.get("iscrowd", 0)),
+                    }
+                )
+
+            shard = {
+                "image": {
+                    "id": image_id,
+                    "file_name": file_name,
+                    "height": int(height),
+                    "width": int(width),
+                },
+                "annotations": shard_anns,
+            }
+            with open(
+                os.path.join(out_dir, ann_subdir, f"{image_id}.json"), "w"
+            ) as f:
+                json.dump(shard, f)
+
+        split_index[split_name] = ids_for_split
+
+    if categories is None:
+        raise ValueError("no COCO JSONs supplied; nothing to write")
+
+    metadata: dict = {}
+    if dataset_name:
+        try:
+            reg = get_dataset_info(dataset_name)
+            metadata = {
+                "modality": reg.modality,
+                "license": reg.license,
+                "source_url": reg.source_url,
+                "citation": reg.citation,
+            }
+        except KeyError:
+            pass
+    if metadata_seed is not None:
+        metadata["seed"] = metadata_seed
+    metadata["version"] = metadata_version or date.today().isoformat()
+
+    index = {
+        "format": FORMAT_VERSION,
+        "dataset": dataset_name or "",
+        "splits": split_index,
+        "image_link_mode": image_link_mode,
+        "image_dir": img_subdir if image_link_mode != "reference" else os.path.abspath(root_dir),
+        "ann_dir": ann_subdir,
+        "metadata": metadata,
+        "source_splits_json": ",".join(
+            os.path.basename(p) for p in coco_jsons.values() if p
+        ),
+    }
+
+    with open(os.path.join(out_dir, "categories.json"), "w") as f:
+        json.dump({"categories": categories}, f, indent=2)
+    with open(os.path.join(out_dir, "index.json"), "w") as f:
+        json.dump(index, f, indent=2)
+
+    return index
+
+
+# --------------------------------------------------------------------------- #
 # Reader
 # --------------------------------------------------------------------------- #
 
@@ -475,17 +680,31 @@ class ShardedCocoDataset(Dataset):
 def _cli() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Convert a splits JSON (with multilabel .npy masks) into a "
-            "sharded SA-1B-style per-image RLE annotation tree."
+            "Convert a splits JSON (with multilabel .npy masks) OR a set of "
+            "monolithic per-split COCO JSONs into a sharded SA-1B-style "
+            "per-image RLE annotation tree."
         )
     )
-    parser.add_argument("--splits", required=True, help="Source splits JSON.")
+    parser.add_argument(
+        "--splits", default=None,
+        help="Source splits JSON (multilabel .npy path). Mutually exclusive with --from-coco-*.",
+    )
+    parser.add_argument(
+        "--from-coco-train", default=None,
+        help="Monolithic COCO JSON for the train split (polygon/RLE passthrough).",
+    )
+    parser.add_argument("--from-coco-val", default=None)
+    parser.add_argument("--from-coco-test", default=None)
     parser.add_argument(
         "--root",
         required=True,
-        help="Root dir the splits-JSON image / target paths are relative to.",
+        help="Root dir the image paths are relative to.",
     )
     parser.add_argument("--out", required=True, help="Output directory.")
+    parser.add_argument(
+        "--dataset", default=None,
+        help="Dataset name (used to populate metadata from registry).",
+    )
     parser.add_argument(
         "--image-link-mode",
         default="symlink",
@@ -496,17 +715,36 @@ def _cli() -> None:
         "--splits-only",
         nargs="+",
         default=None,
-        help="Restrict to these split names (default: train val test).",
+        help="Restrict to these split names (default: train val test). Splits-JSON path only.",
     )
     args = parser.parse_args()
 
-    write_sharded_coco(
-        splits_json=args.splits,
-        root_dir=args.root,
-        out_dir=args.out,
-        image_link_mode=args.image_link_mode,
-        splits=tuple(args.splits_only) if args.splits_only else ("train", "val", "test"),
-    )
+    from_coco_any = any([args.from_coco_train, args.from_coco_val, args.from_coco_test])
+    if args.splits and from_coco_any:
+        parser.error("--splits and --from-coco-* are mutually exclusive")
+    if not args.splits and not from_coco_any:
+        parser.error("must provide --splits OR at least one --from-coco-{train,val,test}")
+
+    if from_coco_any:
+        write_sharded_coco_from_coco(
+            coco_jsons={
+                "train": args.from_coco_train,
+                "val": args.from_coco_val,
+                "test": args.from_coco_test,
+            },
+            root_dir=args.root,
+            out_dir=args.out,
+            image_link_mode=args.image_link_mode,
+            dataset_name=args.dataset,
+        )
+    else:
+        write_sharded_coco(
+            splits_json=args.splits,
+            root_dir=args.root,
+            out_dir=args.out,
+            image_link_mode=args.image_link_mode,
+            splits=tuple(args.splits_only) if args.splits_only else ("train", "val", "test"),
+        )
     print(f"Wrote sharded export to {args.out}")
 
 

@@ -26,6 +26,7 @@ extras.
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from typing import Iterable, List, Optional
@@ -155,3 +156,49 @@ def to_hf_dataset(
         dsdict.push_to_hub(push_to_hub, private=private)
 
     return dsdict
+
+
+def _cli() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--splits", required=True, help="Source splits JSON.")
+    parser.add_argument(
+        "--root", required=True,
+        help="Root dir the splits-JSON image / target paths are relative to.",
+    )
+    parser.add_argument(
+        "--out", default=None,
+        help="Directory to save_to_disk(). Required unless --push-to-hub is set.",
+    )
+    parser.add_argument("--dataset", default=None)
+    parser.add_argument(
+        "--push-to-hub", default=None,
+        help="HF Hub repo id (e.g. 'user/anatomy-drive'). Triggers push after build.",
+    )
+    parser.add_argument(
+        "--public", action="store_true",
+        help="If pushing, make the repo public (default: private).",
+    )
+    parser.add_argument(
+        "--splits-only", nargs="+", default=None,
+        help="Restrict to specific split names (default: train val test).",
+    )
+    args = parser.parse_args()
+
+    if not args.out and not args.push_to_hub:
+        parser.error("must provide --out or --push-to-hub")
+
+    dsdict = to_hf_dataset(
+        splits_json=args.splits,
+        root_dir=args.root,
+        splits=tuple(args.splits_only) if args.splits_only else ("train", "val", "test"),
+        dataset_name=args.dataset,
+        push_to_hub=args.push_to_hub,
+        private=not args.public,
+    )
+    if args.out:
+        dsdict.save_to_disk(args.out)
+        print(f"Saved DatasetDict to {args.out}")
+
+
+if __name__ == "__main__":
+    _cli()

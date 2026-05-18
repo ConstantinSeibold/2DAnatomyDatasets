@@ -214,13 +214,13 @@ src/training/                     # legacy backcompat shim (train.py example, de
 4. Add a thin alias module under `src/anatomy_datasets/datasets/<name>.py`.
 5. Add `verify_<name>_visually.py` under the prep dir and verify by loading + overlaying masks.
 
-## Caveats
+## Notes
 
-- mmseg has no native multilabel. Use per-channel export (`--mode per_channel`) or `AnatomyMultilabelDataset` with `target_channel`.
-- Sharded format currently only writes from `.npy` multilabel sources; polygon/COCO passthrough is TODO.
-- COCO exporter is multilabel-only; for multiclass PNG datasets use the mmseg exporter.
-- HF exporter has no CLI yet (Python function only).
-- Some registry license fields are `"unknown"` — check the source URL before commercial use.
+- **Multilabel with mmseg.** mmseg has no native multilabel head. Use
+  `python -m anatomy_datasets.exporters.mmseg --mode per_channel ...` to emit
+  one binary mmseg dataset per class, or use
+  `anatomy_datasets.adapters.mmseg.AnatomyMultilabelDataset` with a
+  `target_channel` index to train on one class at a time without exporting.
 
 ---
 
