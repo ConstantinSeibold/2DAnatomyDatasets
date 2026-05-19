@@ -1,0 +1,4 @@
+from anatomy_datasets.base import BaseMultiLabelDataset
+
+LESAV_Vessel_Dataset = BaseMultiLabelDataset
+LESAV_AV_Dataset = BaseMultiLabelDataset

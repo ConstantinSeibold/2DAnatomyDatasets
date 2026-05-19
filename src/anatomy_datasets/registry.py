@@ -200,6 +200,25 @@ DATASET_REGISTRY: dict[str, DatasetInfo] = {
 }""",
         notes="Extended PAXRay variant.",
     ),
+    "PAXRay++_subset": DatasetInfo(
+        name="PAXRay++ subset",
+        modality="chest_xray",
+        task="multilabel_segmentation",
+        license="CC-BY-NC-SA-4.0",
+        license_url="https://github.com/ConstantinSeibold/ChestXRayAnatomySegmentation/blob/main/LICENSE.txt",
+        source_url="https://github.com/ConstantinSeibold/ChestXRayAnatomySegmentation",
+        citation="Seibold et al., Accurate Fine-Grained Segmentation of Human Anatomy in Radiographs via Volumetric Pseudo-Labeling, 2023.",
+        paper_url="https://arxiv.org/abs/2306.03934",
+        bibtex=r"""@article{seibold2023paxraypp,
+    title         = {Accurate Fine-Grained Segmentation of Human Anatomy in Radiographs via Volumetric Pseudo-Labeling},
+    author        = {Seibold, Constantin and Rei{\ss}, Simon and Sarfraz, Saquib and Fink, Matthias A. and Mayer, Victoria and Sellner, Jan and Kim, Moon Sung and Maier-Hein, Klaus H. and Kleesiek, Jens and Stiefelhagen, Rainer},
+    journal       = {arXiv preprint arXiv:2306.03934},
+    year          = {2023},
+    eprint        = {2306.03934},
+    archivePrefix = {arXiv},
+}""",
+        notes="Deterministic 200/200/200 subset of PAXRay++ (seed=42). For sanity checks / fast iteration; not for benchmark reporting.",
+    ),
     "Teeth": DatasetInfo(
         name="Teeth",
         modality="panoramic_xray",
@@ -339,6 +358,37 @@ DATASET_REGISTRY: dict[str, DatasetInfo] = {
             "extraction requires `unar` (`brew install unar` on macOS) or "
             "`unrar`. The default macOS `7z` from Homebrew p7zip does not "
             "support RAR5 and will fail."
+        ),
+    ),
+    "LES-AV": DatasetInfo(
+        name="LES-AV",
+        modality="fundus",
+        task="multilabel_segmentation",
+        license="custom-academic",
+        license_url="https://figshare.com/articles/dataset/LES-AV_dataset/11857698",
+        source_url="https://figshare.com/articles/dataset/LES-AV_dataset/11857698",
+        citation="Orlando et al., Towards a glaucoma risk index based on simulated hemodynamics from fundus images, MICCAI 2018.",
+        paper_url="https://doi.org/10.1007/978-3-030-00934-2_8",
+        bibtex=r"""@inproceedings{orlando2018lesav,
+    title     = {Towards a glaucoma risk index based on simulated hemodynamics from fundus images},
+    author    = {Orlando, Jos{\'e} Ignacio and Barbosa-Breda, Jo{\~a}o and Van Keer, Karel and Blaschko, Matthew B. and Blanco, Pablo Javier and Bulant, Carlos Alberto},
+    booktitle = {Medical Image Computing and Computer Assisted Intervention -- MICCAI 2018},
+    pages     = {65--73},
+    year      = {2018},
+    publisher = {Springer},
+    doi       = {10.1007/978-3-030-00934-2_8},
+}""",
+        notes=(
+            "22 color fundus images (1444x1620) with binary vessel masks AND a "
+            "color-coded artery/vein mask (red=artery, blue=vein, green=uncertain, "
+            "white=true artery+vein crossing). Stored as a 4-channel boolean .npy "
+            "(channels: vessel, artery, vein, uncertain) so overlapping classes at "
+            "crossings are preserved. Two registered variants share the same .npy: "
+            "LESAV_Vessel selects channel 0, LESAV_AV selects channels 1-3. Random "
+            "14/4/4 split (seed=42), same IDs in matching splits across both variants. "
+            "Figshare metadata lists the license as GPL but the shipped README.txt "
+            "restricts to non-commercial scientific use; the README clause is stricter "
+            "and is what we record."
         ),
     ),
     "HRF": DatasetInfo(

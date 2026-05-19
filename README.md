@@ -61,6 +61,7 @@ by image count within each group.
 | | DRIVE | 40 | 2 | multiclass (vessel) | custom-academic | `DRIVE_ROOT_FOLDER` | Digital Retinal Images for Vessel Extraction — canonical vessel-seg benchmark; 40 fundus images from a Dutch diabetic-retinopathy screening program. (Staal et al., IEEE TMI 2004.) |
 | | HRF | 45 | 2 | multiclass (vessel) | CC-BY-4.0 | `HRF_ROOT_FOLDER` | High-Resolution Fundus images (3504×2336 or 3072×2048) across three cohorts — 15 healthy, 15 glaucoma, 15 diabetic retinopathy — with manual vessel annotations and FOV masks. (Budai et al., IJBI 2013.) |
 | | FIVES | 800 | 2 | multiclass (vessel) | CC-BY-4.0 | `FIVES_ROOT_FOLDER` | Fundus Image Vessel Segmentation set: 800 high-resolution color fundus images balanced across Normal / AMD / Diabetic retinopathy / Glaucoma; binary vessel annotations from expert crowdsourcing. (Jin et al., Scientific Data 2022.) |
+| | LES-AV | 22 | 4 | multilabel (vessel + artery + vein + uncertain) | custom-academic | `LESAV_ROOT_FOLDER` | 22 color fundus images shipped with both a binary vessel annotation and a color-coded artery/vein annotation, stored as a 4-channel multilabel stack so overlapping classes at A/V crossings are preserved. (Orlando et al., MICCAI 2018.) |
 | **IR retina** | RAVIR | 23 | 3 | multiclass (arteries, veins) | custom-academic | `RAVIR_ROOT_FOLDER` | Retinal Arteries and Veins in Infrared Reflectance imaging — semantic segmentation dataset distinguishing arteries from veins, used for vessel-morphometry analyses. (Hatamizadeh et al., IEEE JBHI 2022.) |
 | **OCT** | DUKE_OCT | 110 | 16 | multiclass (retinal layers) | custom-academic | `DUKE_ROOT_PATH` | Spectral-domain OCT B-scans from patients with diabetic macular edema; retinal-layer boundaries plus fluid regions annotated for layer-segmentation research. (Chiu et al., BOE 2015.) |
 | **Panoramic X-ray** | Teeth | 598 | 1 | detection (tooth) | custom-academic | `TEETH_ROOT` | Panoramic dental radiographs with per-tooth polygon instance annotations; Kaggle release curated by Humans in the Loop. |
@@ -86,6 +87,7 @@ After preparing a dataset, two ways to inspect image / mask overlays.
 ```bash
 python src/prepare_data/prepare_drive/verify_drive_visually.py
 python src/prepare_data/prepare_hrf/verify_hrf_visually.py
+python src/prepare_data/prepare_lesav/verify_lesav_visually.py
 # ...one per dataset under src/prepare_data/prepare_<name>/verify_<name>_visually.py
 ```
 

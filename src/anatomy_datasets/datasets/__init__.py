@@ -14,6 +14,7 @@ from .jump_broadcast import JumpBroadcast_Dataset
 from .medaka_heart import MedakaHeart_Dataset
 from .fives import FIVES_Dataset
 from .hrf import HRF_Dataset
+from .lesav import LESAV_AV_Dataset, LESAV_Vessel_Dataset
 from .montgomery import Montgomery_Dataset
 from .paxray import (
     PAXRay4_binary_Dataset,
@@ -37,6 +38,8 @@ __all__ = [
     "MedakaHeart_Dataset",
     "FIVES_Dataset",
     "HRF_Dataset",
+    "LESAV_AV_Dataset",
+    "LESAV_Vessel_Dataset",
     "Montgomery_Dataset",
     "PAXRay4_binary_Dataset",
     "PAXRay4_detection_Dataset",
