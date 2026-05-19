@@ -2,5 +2,7 @@
 
 from anatomy_datasets.datasets.lesav import (  # noqa: F401
     LESAV_AV_Dataset,
+    LESAV_AV_detection_Dataset,
     LESAV_Vessel_Dataset,
+    LESAV_Vessel_detection_Dataset,
 )

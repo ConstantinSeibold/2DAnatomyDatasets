@@ -28,7 +28,9 @@ from anatomy_datasets.datasets import (
     FIVES_Dataset,
     HRF_Dataset,
     LESAV_AV_Dataset,
+    LESAV_AV_detection_Dataset,
     LESAV_Vessel_Dataset,
+    LESAV_Vessel_detection_Dataset,
     JumpBroadcast_Dataset,
     MedakaHeart_Dataset,
     Montgomery_Dataset,
@@ -114,6 +116,16 @@ DISCOVERY: dict[str, DiscoveryEntry] = {
     "LESAV_AV": DiscoveryEntry(
         cls=LESAV_AV_Dataset, env_var="LESAV_ROOT_FOLDER",
         default_json_name="lesav_av_splits.json", task="segmentation",
+        registry_name="LES-AV",
+    ),
+    "LESAV_VesselDetection": DiscoveryEntry(
+        cls=LESAV_Vessel_detection_Dataset, env_var="LESAV_ROOT_FOLDER",
+        default_json_name=None, task="detection",
+        registry_name="LES-AV",
+    ),
+    "LESAV_AVDetection": DiscoveryEntry(
+        cls=LESAV_AV_detection_Dataset, env_var="LESAV_ROOT_FOLDER",
+        default_json_name=None, task="detection",
         registry_name="LES-AV",
     ),
     "JSRT": DiscoveryEntry(
