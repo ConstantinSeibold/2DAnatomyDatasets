@@ -1,29 +1,19 @@
-import zipfile
 import tarfile
 import os
 
 if __name__ == "__main__":
     PAXRAYPP_ROOT = os.getenv("PAXRAYPP_ROOT", "paxraypp")
 
-    # File paths
-    zip_file_path = os.path.join(PAXRAYPP_ROOT, "labels.zip")
     tar_file_path = os.path.join(PAXRAYPP_ROOT, "paxray_images_unfiltered.tar.gz")
+    images_out = os.path.join(PAXRAYPP_ROOT, "paxray_images_unfiltered")
 
-    # Unpacking the zip file
-    with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
-        zip_ref.extractall(
-            os.path.join(PAXRAYPP_ROOT,"labels_unpacked")
-        )  # Extract to a folder named "labels_unpacked"
+    # Despite the .tar.gz extension the upstream archive is a plain (uncompressed)
+    # tar — use "r:*" so tarfile auto-detects whether it is gzipped.
+    with tarfile.open(tar_file_path, "r:*") as tar_ref:
+        tar_ref.extractall(images_out)
 
-    # Unpacking the tar.gz file
-    with tarfile.open(tar_file_path, "r:gz") as tar_ref:
-        tar_ref.extractall(
-            os.path.join(PAXRAYPP_ROOT,"paxray_images_unfiltered")
-        )  # Extract to a folder named "paxray_images_unfiltered"
-
-    # Deleting the original compressed files
-    os.remove(zip_file_path)
     os.remove(tar_file_path)
 
-    # Check the directories to confirm unpacking
-    os.listdir("labels_unpacked"), os.listdir("paxray_images_unfiltered")
+    # labels.zip from the upstream bundle holds unfiltered per-image .npy masks;
+    # the paxray_train_val.json / paxray_test.json already encode the filtered
+    # labels we use, so the zip is intentionally left untouched here.
